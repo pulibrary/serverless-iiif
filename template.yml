@@ -22,7 +22,7 @@ Parameters:
   IiifLambdaTimeout:
     Type: Number
     Description: The timeout for the lambda.
-    Default: 10
+    Default: 30
 Resources:
   Dependencies:
     Type: "AWS::Serverless::LayerVersion"
