@@ -1,7 +1,8 @@
 const eventPath = (event) => {
-  if (includeStage(event)) {
-    const path = '/' + event.requestContext.stage + event.path;
-    return path.replace(/\/*$/, '');
+  if (event.headers["x-original-uri"]) {
+    console.log(`Original URI: ${event.headers["x-original-uri"]}`)
+    console.log(`Path: ${event.path}`)
+    return event.headers["x-original-uri"].replace(/\/*$/, '');
   }
   return event.path.replace(/\/*$/, '');
 };

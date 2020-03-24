@@ -29,7 +29,7 @@ Parameters:
   CacheMinimumTTL:
     Type: Number
     Description: Minimum TTL (in seconds) for the CloudFront Cache
-    Default: 0
+    Default: 31536000
   CacheMaximumTTL:
     Type: Number
     Description: Maximum TTL (in seconds) for the CloudFront Cache
@@ -37,7 +37,7 @@ Parameters:
   CacheDefaultTTL:
     Type: Number
     Description: Default TTL (in seconds) for the CloudFront Cache
-    Default: 86400
+    Default: 31536000
   CachePriceClass:
     Type: String
     Description: Price Class for the CloudFront Cache
@@ -73,7 +73,7 @@ Parameters:
   IiifLambdaTimeout:
     Type: Number
     Description: The timeout for the lambda.
-    Default: 10
+    Default: 30
   OriginRequestARN:
     Type: String
     Description: ARN of the Lambda@Edge Function to use at the origin-request stage
@@ -124,8 +124,6 @@ Conditions:
       - Condition: CreateDistribution
       - Fn::Not:
           - Fn::Equals: [!Ref CacheDomainName, ""]
-      - Fn::Not:
-          - Fn::Equals: [!Ref CacheSSLCertificate, ""]
   UseOriginRequest:
     Fn::Not:
       - Fn::Equals: [!Ref OriginRequestARN, ""]
@@ -176,6 +174,38 @@ Resources:
       LicenseInfo: "Apache-2.0"
     Metadata:
       BuildMethod: nodejs14.x
+  LambdaEdgeFunctionForwardedFor:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: ./src_edge
+        Role: !GetAtt LambdaEdgeFunctionRole.Arn
+        Runtime: nodejs12.x
+        Handler: index.viewerRequest
+        Timeout: 5
+        AutoPublishAlias: live 
+  LambdaEdgeFunctionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+        Path: "/"
+        ManagedPolicyArns:
+            - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Sid: "AllowLambdaServiceToAssumeRole"
+              Effect: "Allow"
+              Action: 
+                - "sts:AssumeRole"
+              Principal:
+                Service: 
+                  - "lambda.amazonaws.com"
+                  - "edgelambda.amazonaws.com"
+  IiifCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref CacheDomainName
+      ValidationMethod: 'DNS'
   CacheBucket:
     Type: "AWS::S3::Bucket"
     Condition: CreateCacheBucket
@@ -213,6 +243,7 @@ Resources:
       CodeUri: ./src
       Layers:
         - Ref: Dependencies
+        - 'arn:aws:lambda:us-east-1:464622532012:layer:Datadog-Node12-x:22'
       Policies:
         - AWSLambdaExecute
         - Version: "2012-10-17"
@@ -270,6 +301,8 @@ Resources:
               - !Ref AWS::NoValue
           tiffBucket:
             Fn::Sub: "${SourceBucket}"
+          DD_KMS_API_KEY: "AQICAHjNoNXrp3Thd1UL3np+Y/XCnSL7Qz4WnjX94YIt8xU8swEtnSpn/igd3vmQIASzwzbxAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMRJdyqtfH+l/fCVhMAgEQgDOC6XkoNRyTuE/i4ICJWXqlWwowFpcU5IGyAlReULvVErzUfu1TM9MiaKYGo2vhSbGNjKI="
+          DD_FLUSH_TO_LOG: True
       Events:
         GetId:
           Type: Api
@@ -606,13 +639,18 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: "Caching Distribution Identity"
-  CachingEndpoint:
+  CFDistribution:
     Type: "AWS::CloudFront::Distribution"
     Condition: CreateDistribution
     Properties:
       DistributionConfig:
         Enabled: true
-        PriceClass: !Ref CachePriceClass
+        HttpVersion: 'http2'
+        CustomErrorResponses:
+          - ErrorCode: 502
+            ErrorCachingMinTTL: 1
+          - ErrorCode: 503
+            ErrorCachingMinTTL: 1
         Aliases:
           Fn::If:
             - DistributionCustomDomain
@@ -621,7 +659,7 @@ Resources:
         ViewerCertificate:
           Fn::If:
             - DistributionCustomDomain
-            - AcmCertificateArn: !Ref CacheSSLCertificate
+            - AcmCertificateArn: !Ref IiifCertificate
               MinimumProtocolVersion: 'TLSv1'
               SslSupportMethod: 'sni-only'
             - CloudFrontDefaultCertificate: true
@@ -690,7 +728,8 @@ Resources:
               - EventType: viewer-request
                 LambdaFunctionARN: !Ref ViewerRequestARN
                 IncludeBody: false
-              - !Ref AWS::NoValue
+              - EventType: viewer-request
+                LambdaFunctionARN: !Ref LambdaEdgeFunctionForwardedFor.Version
             - Fn::If:
               - UseOriginRequest
               - EventType: origin-request
@@ -718,11 +757,12 @@ Outputs:
         - Fn::If:
           - DistributionCustomDomain
           - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
-          - Fn::Sub: "https://${CachingEndpoint.DomainName}/iiif/2/"
+          - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
         - Fn::Sub: "https://${IiifApi}.execute-api.${AWS::Region}.amazonaws.com/${IiifApi.Stage}/iiif/2/"
   ApiId:
     Description: API Gateway ID
-    Value: !Ref IiifApi
+    Value:
+      Ref: IiifApi
     Export:
       Name: !Sub "${AWS::StackName}:ApiId"
   DistributionId:
@@ -730,7 +770,7 @@ Outputs:
     Value: 
       Fn::If:
         - CreateDistribution
-        - !Ref CachingEndpoint
+        - !Ref CFDistribution
         - AWS::NoValue
     Export:
       Name: !Sub "${AWS::StackName}:DistributionId"

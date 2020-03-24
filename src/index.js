@@ -4,8 +4,12 @@ const cache = require('./cache');
 const helpers = require('./helpers');
 const resolvers = require('./resolvers');
 const errorHandler = require('./error');
-
 const density = helpers.parseDensity(process.env.density);
+// Restrict width to 2000 to prevent payload limit errors. This number has shown
+// in testing to fix the issues in all existing cases, while still providing a
+// readable download.
+const maxWidth = 2000;
+
 const preflight = process.env.preflight === 'true';
 
 const handleRequestFunc = async (event, context, callback) => {
@@ -35,7 +39,7 @@ const handleImageRequestFunc = async (event, context, callback) => {
   let resource;
   try {
     const uri = getUri(event);
-    resource = new IIIF.Processor(uri, streamResolver, { dimensionFunction: dimensionResolver, density: density });
+    resource = new IIIF.Processor(uri, streamResolver, { dimensionFunction: dimensionResolver, density: density, maxWidth: maxWidth });
     const key = new URL(uri).pathname.replace(/^\//, '');
     const cached = resource.filename === 'info.json' ? false : await getCached(key);
 
