@@ -400,29 +400,12 @@ Resources:
         Handler: index.viewerRequest
         Timeout: 5
         AutoPublishAlias: live 
-  IiifCertificate:
-    Type: AWS::CertificateManager::Certificate
-    Properties:
-      DomainName: !Sub "${Alias}"
-      ValidationMethod: 'DNS'
   CFDistribution:
       Type: AWS::CloudFront::Distribution
       Properties:
         DistributionConfig:
-          HttpVersion: 'http2'
-          CustomErrorResponses:
-            - ErrorCode: 502
-              ErrorCachingMinTTL: 1
-            - ErrorCode: 503
-              ErrorCachingMinTTL: 1
           Enabled: 'true'
           Comment: !Sub '${StageName} - CloudFront Cache'
-          Aliases:
-            - !Sub "${Alias}"
-          ViewerCertificate:
-            AcmCertificateArn: !Ref IiifCertificate
-            MinimumProtocolVersion: 'TLSv1.2_2018'
-            SslSupportMethod: 'sni-only'
           Origins:
             -
               Id: !Sub '${StageName} - IIIF API Gateway'
@@ -473,6 +456,10 @@ Outputs:
     Description: IIIF Endpoint URL
     Value:
       Fn::Sub: "https://${IiifApi}.execute-api.${AWS::Region}.amazonaws.com/${IiifApi.Stage}/iiif/2/"
+  CachedEndpoint:
+    Description: Cached Endpoint URL
+    Value:
+      Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
   ApiId:
     Description: API Gateway ID
     Value:
