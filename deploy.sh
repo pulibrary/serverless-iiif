@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if [ $1 == "production" ]
+if [ "$1" == "production" ]
 then
   sam deploy --stack-name=iiif-serverless-production \
   --s3-prefix=iiif-serverless-production \
@@ -8,7 +8,7 @@ then
   --region='us-east-1' \
   --capabilities='CAPABILITY_IAM' \
   --profile='figgy-deploy'
-elif [ $1 == "staging" ]
+elif [ "$1" == "staging" ]
 then
   sam deploy --stack-name=iiif-serverless-staging \
   --s3-prefix=iiif-serverless-staging \
