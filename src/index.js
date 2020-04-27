@@ -110,7 +110,7 @@ class IIIFLambda {
     var host = this.event.headers['X-Forwarded-Host'] || this.event.headers['Host'];
     var uri = `${scheme}://${host}${this.eventPath()}`;
 
-    this.resource = new IIIF.Processor(uri, ((id) => this.s3Object(id)), (id) => this.dimensions(id, this.sourceBucket));
+    this.resource = new IIIF.Processor(uri, ((id) => this.s3Object(id)), (id) => this.dimensions(id, this.sourceBucket), 2000);
 
     this.resource
       .execute()
