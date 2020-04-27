@@ -8,6 +8,10 @@ const AWS = require('aws-sdk');
 const IIIF = require('iiif-processor');
 const middy = require('middy');
 const { cors, httpHeaderNormalizer } = require('middy/middlewares');
+// Restrict width to 2000 to prevent payload limit errors. This number has shown
+// in testing to fix the issues in all existing cases, while still providing a
+// readable download.
+const maxWidth = 2000;
 
 const handleRequest = (event, context, callback) => {
   try {
@@ -110,7 +114,7 @@ class IIIFLambda {
     var host = this.event.headers['X-Forwarded-Host'] || this.event.headers['Host'];
     var uri = `${scheme}://${host}${this.eventPath()}`;
 
-    this.resource = new IIIF.Processor(uri, ((id) => this.s3Object(id)), (id) => this.dimensions(id, this.sourceBucket));
+    this.resource = new IIIF.Processor(uri, ((id) => this.s3Object(id)), (id) => this.dimensions(id, this.sourceBucket), maxWidth);
 
     this.resource
       .execute()
