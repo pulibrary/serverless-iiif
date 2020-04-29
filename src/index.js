@@ -15,6 +15,7 @@ const maxWidth = 2000;
 
 const handleRequest = (event, context, callback) => {
   try {
+    context.callbackWaitsForEmptyEventLoop = false;
     new IIIFLambda(event, context, callback, process.env.tiffBucket)
       .processRequest();
   } catch (err) {
