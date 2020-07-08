@@ -1,5 +1,5 @@
 /*
- * IMPLEMENTATION NOTE: API Gateway Lambda functions have a 
+ * IMPLEMENTATION NOTE: API Gateway Lambda functions have a
  * ~6MB payload limit. See LAMBDA_LIMIT.md for implications
  * and a workaround.
  */
@@ -30,6 +30,7 @@ class IIIFLambda {
     this.respond = callback;
     this.sourceBucket = sourceBucket;
     this.handled = false;
+    // console.log("IIIFLambda.constructor called with sourceBucket", sourceBucket)
   }
 
   directResponse (result) {
@@ -37,17 +38,22 @@ class IIIFLambda {
     var content = base64 ? result.body.toString('base64') : result.body;
     var response = {
       statusCode: 200,
-      headers: { 
+      headers: {
         'Content-Type': result.contentType,
         'Access-Control-Allow-Origin': '*'
        },
       isBase64Encoded: base64,
       body: content
     };
+    console.log("base64.length = ", content.length, "original.length = ", result.body.length)
     this.respond(null, response);
+
   }
 
   handleError (err, _resource) {
+    console.error(err)
+    console.log("this.event = ", this.event)
+    console.log("this.context = ", this.context)
     if (err.statusCode) {
       this.respond(null, {
         statusCode: err.statusCode,
@@ -101,6 +107,7 @@ class IIIFLambda {
   checkForInfoJsonRedirect() {
     if (this.handled) return this;
     if (this.fileMissing()) {
+      console.log("file is missing, redirect to info.json")
       var location = this.eventPath() + '/info.json';
       this.respond(null, { statusCode: 302, headers: { 'Location': location }, body: "Redirecting to info.json" });
       this.handled = true;
@@ -115,11 +122,8 @@ class IIIFLambda {
     var host = this.event.headers['X-Forwarded-Host'] || this.event.headers['Host'];
     var uri = `${scheme}://${host}${this.eventPath()}`;
 
-    this.resource = new IIIF.Processor(
-      uri, 
-      (id) => { return this.s3Object(id) }, 
-      (id) => { return this.dimensions(id, this.sourceBucket) }
-    );
+    console.log("iiif image uri = ", uri)
+    this.resource = new IIIF.Processor(uri, id => this.s3Object(id));
 
     this.resource
       .execute()
