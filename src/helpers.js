@@ -18,7 +18,7 @@ const getUri = (event) => {
 };
 
 const includeStage = (event) => {
-  if ('include_stage' in process.env) {
+  if (false) {
     return ['true', 'yes'].indexOf(process.env.include_stage.toLowerCase()) > -1;
   } else {
     const host = event.headers.Host;
