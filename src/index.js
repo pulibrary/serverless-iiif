@@ -9,6 +9,10 @@ const IIIF = require('iiif-processor');
 const helpers = require('./helpers');
 const resolvers = require('./resolvers');
 const errorHandler = require('./error');
+// Restrict width to 2000 to prevent payload limit errors. This number has shown
+// in testing to fix the issues in all existing cases, while still providing a
+// readable download.
+const maxWidth = 2000;
 
 const handleRequestFunc = async (event, context, callback) => {
   const { eventPath, fileMissing, getRegion } = helpers;
@@ -36,7 +40,7 @@ const handleImageRequestFunc = async (event, context, callback) => {
   let resource;
   try {
     const uri = getUri(event);
-    resource = new IIIF.Processor(uri, streamResolver, dimensionResolver);
+    resource = new IIIF.Processor(uri, streamResolver, dimensionResolver, maxWidth);
     const result = await resource.execute();
 
     const base64 = isBase64(result);
