@@ -13,4 +13,3 @@ Forked from [nulib/serverless-iiif](https://github.com/nulib/serverless-iiif).
   - SHARP dependency must be installed in a similar environment to Lambda.
 * `./deploy.sh staging` will deploy the stack to staging.
 * `./deploy.sh production` will deploy the stack to staging.
->>>>>>> Add new README and CloudFront setup.
