@@ -1,5 +1,5 @@
 const eventPath = (event) => {
-  if (includeStage(event)) {
+  if (false) {
     const path = '/' + event.requestContext.stage + event.path;
     return path.replace(/\/*$/, '');
   }
@@ -18,7 +18,7 @@ const getUri = (event) => {
 };
 
 const includeStage = (event) => {
-  if (false) {
+  if ('include_stage' in process.env) {
     return ['true', 'yes'].indexOf(process.env.include_stage.toLowerCase()) > -1;
   } else {
     const host = event.headers.Host;
