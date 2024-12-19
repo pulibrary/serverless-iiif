@@ -2,6 +2,12 @@
 
 Forked from [nulib/serverless-iiif](https://github.com/nulib/serverless-iiif).
 
+### Initial Setup
+```sh
+brew install aws-sam-cli
+asdf install
+yarn install
+```
 ## Deployment
 
 * Set up a `figgy-deploy` AWS profile. You can get the AccessID/AccessKey from

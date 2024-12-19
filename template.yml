@@ -170,16 +170,16 @@ Resources:
       Description: Dependencies for IIIF app
       ContentUri: ./dependencies
       CompatibleRuntimes:
-        - nodejs14.x
+        - nodejs22.x
       LicenseInfo: "Apache-2.0"
     Metadata:
-      BuildMethod: nodejs14.x
+      BuildMethod: nodejs22.x
   LambdaEdgeFunctionForwardedFor:
       Type: AWS::Serverless::Function
       Properties:
         CodeUri: ./src_edge
         Role: !GetAtt LambdaEdgeFunctionRole.Arn
-        Runtime: nodejs12.x
+        Runtime: nodejs22.x
         Handler: index.viewerRequest
         Timeout: 5
         AutoPublishAlias: live 
@@ -235,7 +235,7 @@ Resources:
   IiifFunction:
     Type: "AWS::Serverless::Function"
     Properties:
-      Runtime: nodejs14.x
+      Runtime: nodejs22.x
       Handler: index.handler
       MemorySize: !Ref IiifLambdaMemory
       Timeout:
@@ -243,7 +243,7 @@ Resources:
       CodeUri: ./src
       Layers:
         - Ref: Dependencies
-        - 'arn:aws:lambda:us-east-1:464622532012:layer:Datadog-Node12-x:22'
+        - 'arn:aws:lambda:us-east-1:464622532012:layer:Datadog-Node22-x:117'
       Policies:
         - AWSLambdaExecute
         - Version: "2012-10-17"
