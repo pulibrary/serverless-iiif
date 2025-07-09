@@ -736,15 +736,23 @@ Resources:
               Fn::Sub: "${IiifApi}.execute-api.${AWS::Region}.amazonaws.com"
             OriginPath:
               Fn::Sub: "/${IiifApi.Stage}"
+            OriginShield:
+              Enabled: true
+              OriginShieldRegion:
+                Fn::Sub: "${AWS::Region}"
           - Fn::If:
               - CreateCacheBucket
               - Id: IiifCache
                 S3OriginConfig:
-                  OriginAccessIdentity: 
+                  OriginAccessIdentity:
                     Fn::Join:
                       - ''
                       - - 'origin-access-identity/cloudfront/'
                         - !Ref CachingIdentity
+                OriginShield:
+                  Enabled: true
+                  OriginShieldRegion:
+                    Fn::Sub: "${AWS::Region}"
                 DomainName:
                   Fn::Sub: "${CacheBucket}.s3.${AWS::Region}.amazonaws.com"
               - !Ref AWS::NoValue
