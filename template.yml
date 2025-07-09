@@ -639,6 +639,71 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: "Caching Distribution Identity"
+
+  CloudFrontCachePolicy:
+      Type: "AWS::CloudFront::CachePolicy"
+      Properties:
+          CachePolicyConfig:
+              Name:
+                Fn::Sub: "iiif-cloud-${StageName}-CachePolicy"
+              Comment: "Cache policy for IIIF Cloud"
+              DefaultTTL: !Ref CacheDefaultTTL
+              MaxTTL: !Ref CacheMinimumTTL
+              MinTTL: !Ref CacheMaximumTTL
+              ParametersInCacheKeyAndForwardedToOrigin:
+                  EnableAcceptEncodingGzip: true
+                  EnableAcceptEncodingBrotli: true
+                  CookiesConfig:
+                      CookieBehavior: "none"
+                  HeadersConfig:
+                      HeaderBehavior: "none"
+                  QueryStringsConfig:
+                      QueryStringBehavior: "none"
+
+  CloudFrontOriginRequestPolicy:
+      Type: "AWS::CloudFront::OriginRequestPolicy"
+      Properties:
+          OriginRequestPolicyConfig:
+              Name:
+                Fn::Sub: "iiif-cloud-${StageName}-OriginPolicy"
+              Comment: "Origin policy for IIIF Cloud"
+              HeadersConfig:
+                  HeaderBehavior: "whitelist"
+                  Headers:
+                    - "x-original-uri"
+              CookiesConfig:
+                  CookieBehavior: "none"
+              QueryStringsConfig:
+                  QueryStringBehavior: "none"
+
+  CloudFrontResponseHeadersPolicy:
+      Type: "AWS::CloudFront::ResponseHeadersPolicy"
+      Properties:
+          ResponseHeadersPolicyConfig:
+              Comment: "Custom response policy with cache-control max-age set to match TTL"
+              CorsConfig:
+                  AccessControlAllowCredentials: false
+                  AccessControlAllowHeaders:
+                      Items:
+                        - "*"
+                  AccessControlAllowMethods:
+                      Items:
+                        - "ALL"
+                  AccessControlAllowOrigins:
+                      Items:
+                        - "*"
+                  AccessControlExposeHeaders:
+                      Items:
+                        - "*"
+                  OriginOverride: true
+              CustomHeadersConfig:
+                  Items:
+                    - Header: "Cache-Control"
+                      Value: "public, max-age= 31536000"
+                      Override: true
+              Name:
+                Fn::Sub: "iiif-cloud-${StageName}-ResponseHeadersPolicy"
+
   CFDistribution:
     Type: "AWS::CloudFront::Distribution"
     Condition: CreateDistribution
@@ -705,12 +770,11 @@ Resources:
             Fn::If: [CreateCacheBucket, IiifOrigins, IiifApi]
           ViewerProtocolPolicy: https-only
           AllowedMethods: ["GET", "HEAD", "OPTIONS"]
-          CachedMethods: ["GET", "HEAD"]
-          ForwardedValues:
-            QueryString: false
-          MinTTL: !Ref CacheMinimumTTL
-          MaxTTL: !Ref CacheMaximumTTL
-          DefaultTTL: !Ref CacheDefaultTTL
+          CachedMethods: ["GET", "HEAD", "OPTIONS"]
+          Compress: false
+          CachePolicyId: !Ref CloudFrontCachePolicy
+          OriginRequestPolicyId: !Ref CloudFrontOriginRequestPolicy
+          ResponseHeadersPolicyId: !Ref CloudFrontResponseHeadersPolicy
           FunctionAssociations:
             - Fn::If:
               - ViewerRequestCloudWatchFunction
