@@ -80,7 +80,8 @@ const makeResponse = (result) => {
     statusCode: 200,
     headers: {
       'Content-Type': result.contentType,
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 's-maxage=31536000'
     },
     isBase64Encoded: base64,
     body: content
