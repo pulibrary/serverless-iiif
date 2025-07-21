@@ -49,12 +49,8 @@ const handleImageRequestFunc = async (event, context, callback) => {
     } else {
       const result = await resource.execute();
 
-      if (isTooLarge(result.body)) {
-        await makeCache(key, result);
-        response = forceFailover();
-      } else {
-        response = makeResponse(result);
-      }
+      await makeCache(key, result);
+      response = forceFailover();
     }
     return callback(null, response);
   } catch (err) {
