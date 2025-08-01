@@ -766,8 +766,9 @@ Resources:
               - CreateCacheBucket
               - - Id: IiifOrigins
                   Members:
-                    Quantity: 2
+                    Quantity: 3
                     Items:
+                      - OriginId: IiifCache
                       - OriginId: IiifApi
                       - OriginId: IiifCache
                   FailoverCriteria:
