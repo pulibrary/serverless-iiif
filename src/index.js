@@ -4,6 +4,8 @@ const cache = require('./cache');
 const helpers = require('./helpers');
 const resolvers = require('./resolvers');
 const errorHandler = require('./error');
+const { streamifyResponse } = require('./streamify');
+
 const density = helpers.parseDensity(process.env.density);
 // Restrict width to 2000 to prevent payload limit errors. This number has shown
 // in testing to fix the issues in all existing cases, while still providing a
@@ -12,7 +14,7 @@ const maxWidth = 2000;
 
 const preflight = process.env.preflight === 'true';
 
-const handleRequestFunc = async (event, context, callback) => {
+const handleRequestFunc = streamifyResponse(async (event, context, callback) => {
   const { eventPath, fileMissing, getRegion } = helpers;
 
   AWS.config.region = getRegion(context);
@@ -29,7 +31,7 @@ const handleRequestFunc = async (event, context, callback) => {
     // IMAGE REQUEST
     return await handleImageRequestFunc(event, context, callback);
   }
-};
+});
 
 const handleImageRequestFunc = async (event, context, callback) => {
   const { getUri } = helpers;
@@ -48,10 +50,7 @@ const handleImageRequestFunc = async (event, context, callback) => {
 
     if (shouldCache) {
       await makeCache(key, result);
-      response = {
-        statusCode: 200,
-        body: `Image cached: ${key}`
-      };
+      response = makeResponse(result);
     } else {
       response = makeResponse(result);
     }

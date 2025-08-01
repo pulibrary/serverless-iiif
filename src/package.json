@@ -5,6 +5,7 @@
   "author": "Michael B. Klein",
   "license": "Apache-2.0",
   "dependencies": {
+    "lambda-stream": "^0.4.0",
     "uri-js": "^4.4.1"
   },
   "devDependencies": {
