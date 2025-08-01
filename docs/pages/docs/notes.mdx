@@ -1,0 +1,3 @@
+# Notes
+
+`serverless-iiif` takes advantage of AWS Lambda URLs' [streaming response](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-response-streaming/) functionality to overcome the 6MB response limit that previous versions were subject to. Instead of a hard limit of 6MB, there is now a soft limit of approximately 20MB for each response. This limit can be adjusted by opening a support ticket with AWS requesting a quota increase. In addition, the streaming rate for the first 6MB of each response is uncapped; data over 6MB is capped at 2MB/s.

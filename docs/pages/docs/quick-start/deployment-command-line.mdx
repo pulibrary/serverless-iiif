@@ -1,0 +1,51 @@
+import { Steps } from 'nextra/components';
+
+# Deploying via the Command Line
+
+## Prerequisites
+
+- [Docker](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-docker.html)
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [AWS SAM CLI](https://aws.amazon.com/serverless/sam/) v1.91 or greater
+
+<Steps>
+
+### Step 1
+
+Make sure the AWS CLI is [properly configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with credentials that have sufficient access to manage IAM, S3, and Lambda resources.
+
+### Step 2
+
+Clone this repository.
+
+### Step 3
+
+Copy `deploy.yml.example` to `deploy.yml`. Update the various values under `parameter_overrides` within.
+
+### Step 4
+
+Build the application:
+
+```shell
+$ npm run build
+```
+
+### Step 5
+
+Deploy the application using one of the following:
+
+```shell
+# To be prompted for all configuration values before deploying
+$ npm run deploy-guided
+
+# To deploy using the current configuration, prompting only for changeset confirmation
+$ npm run deploy
+```
+
+If you use the guided deploy, you'll be prompted for various configuration parameters, confirmations, and acknowledgments of specific issues (particularly the creation of IAM resources and the deployment of an open/unauthenticated Lambda Function URL). Otherwise, you'll simply be asked to confirm the calculated changeset.
+
+### Step 6
+
+Follow the prompts to complete the deployment process and get the resulting endpoint.
+
+</Steps>

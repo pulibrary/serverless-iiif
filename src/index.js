@@ -1,90 +1,112 @@
-const AWS = require('aws-sdk');
 const IIIF = require('iiif-processor');
-const cache = require('./cache');
+const debug = require('debug')('serverless-iiif:lambda');
 const helpers = require('./helpers');
 const resolvers = require('./resolvers');
-const errorHandler = require('./error');
-const density = helpers.parseDensity(process.env.density);
-// Restrict width to 2000 to prevent payload limit errors. This number has shown
-// in testing to fix the issues in all existing cases, while still providing a
-// readable download.
-const maxWidth = 2000;
+const { errorHandler } = require('./error');
+const { streamifyResponse } = require('./streamify');
 
-const preflight = process.env.preflight === 'true';
+const handleRequestFunc = streamifyResponse(async (event, context) => {
+  debug('http path: ', event?.requestContext?.http?.path);
+  const { addCorsHeaders, eventPath, fileMissing } = helpers;
 
-const handleRequestFunc = async (event, context, callback) => {
-  const { eventPath, fileMissing, getRegion } = helpers;
-
-  AWS.config.region = getRegion(context);
   context.callbackWaitsForEmptyEventLoop = false;
 
-  if (event.httpMethod === 'OPTIONS') {
+  let response;
+  if (event.requestContext?.http?.method === 'OPTIONS') {
     // OPTIONS REQUEST
-    return callback(null, { statusCode: 204, body: null });
+    response = { statusCode: 204, body: null };
+  } else if (event?.requestContext?.http?.path === '/') {
+    response = handleServiceDiscoveryRequestFunc();
+  } else if (/^\/iiif\/\d+\/?$/.test(event?.requestContext?.http?.path)) {
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      isBase64Encoded: false,
+      body: 'OK'
+    };
   } else if (fileMissing(event)) {
     // INFO.JSON REQUEST
     const location = eventPath(event) + '/info.json';
-    return callback(null, { statusCode: 302, headers: { Location: location }, body: 'Redirecting to info.json' });
+    response = { statusCode: 302, headers: { Location: location }, body: 'Redirecting to info.json' };
   } else {
     // IMAGE REQUEST
-    return await handleImageRequestFunc(event, context, callback);
+    response = await handleResourceRequestFunc(event, context);
+  }
+  return addCorsHeaders(event, response);
+});
+
+const handleServiceDiscoveryRequestFunc = () => {
+  return {
+    statusCode: 200,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    isBase64Encoded: false,
+    body: JSON.stringify({
+      links: [
+        {
+          href: '/iiif/2/{:id}',
+          name: 'IIIF Image API v2 endpoint'
+        },
+        {
+          href: '/iiif/3/{:id}',
+          name: 'IIIF Image API v3 endpoint'
+        }
+      ],
+      versions: { ...require('sharp').versions }
+    })
+  };
+};
+
+const executeResource = async (uri, streamResolver, dimensionFunction, density, sharpOptions = {}) => {
+  try {
+    const debugBorder = process.env.debugBorder === 'true';
+    const pageThreshold = parseInt(process.env.pageThreshold) || undefined;
+    const resource = new IIIF.Processor(uri, streamResolver, { dimensionFunction, density, debugBorder, pageThreshold, sharpOptions });
+    return await resource.execute();
+  } catch (err) {
+    if (/Invalid tile part index/.test(err.message) && !sharpOptions.jp2Oneshot) {
+      console.log('Encountered JP2 tile part index error. Trying oneshot load.');
+      return await executeResource(uri, streamResolver, dimensionFunction, density, { ...sharpOptions, jp2Oneshot: true });
+    }
+    throw err;
   }
 };
 
-const handleImageRequestFunc = async (event, context, callback) => {
-  const { getUri, isTooLarge, forceCache } = helpers;
+const handleResourceRequestFunc = async (event, context) => {
+  const density = helpers.parseDensity(process.env.density);
+  const { getUri } = helpers;
+  const preflight = process.env.preflight === 'true';
   const { streamResolver, dimensionResolver } = resolvers.resolverFactory(event, preflight);
-  const { getCached, makeCache } = cache;
 
   let resource;
   try {
     const uri = getUri(event);
-    resource = new IIIF.Processor(uri, streamResolver, { dimensionFunction: dimensionResolver, density: density, maxWidth: maxWidth });
-    const key = new URL(uri).pathname.replace(/^\//, '');
-    const cached = resource.filename === 'info.json' ? false : await getCached(key);
-
-    let response;
-    if (cached) {
-      response = forceFailover();
-    } else {
-      const result = await resource.execute();
-
-      if (isTooLarge(result.body) || forceCache(event)) {
-        await makeCache(key, result);
-        response = forceFailover();
-      } else {
-        response = makeResponse(result);
-      }
-    }
-    return callback(null, response);
+    const result = await executeResource(uri, streamResolver, dimensionResolver, density);
+    return makeResponse(result);
   } catch (err) {
-    return errorHandler.errorHandler(err, event, context, resource, callback);
+    return errorHandler(err, event, context, resource);
   }
 };
 
-const forceFailover = () => {
-  return {
-    statusCode: 404, // Use 404 to force CloudFront to fail over to the cache
-    isBase64Encoded: false,
-    body: ''
-  };
-};
-
 const makeResponse = (result) => {
-  const { isBase64 } = helpers;
-
-  const base64 = isBase64(result);
-  const content = base64 ? result.body.toString('base64') : result.body;
+  const linkHeaders = ['canonical', 'profile']
+    .map((rel) => {
+      return { rel, property: `${rel}Link` };
+    })
+    .filter(({ property }) => result[property])
+    .map(({ rel, property }) => `<${result[property]}>; rel=${rel}`);
 
   return {
     statusCode: 200,
     headers: {
       'Content-Type': result.contentType,
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 's-maxage=31536000'
+      Link: linkHeaders.length > 0 ? linkHeaders.join(',') : undefined
     },
-    isBase64Encoded: base64,
-    body: content
+    isBase64Encoded: false,
+    body: result.body
   };
 };
 
