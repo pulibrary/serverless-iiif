@@ -182,7 +182,33 @@ Resources:
         Runtime: nodejs22.x
         Handler: index.viewerRequest
         Timeout: 5
-        AutoPublishAlias: live 
+        AutoPublishAlias: live
+      Policies:
+        - AWSLambdaExecute
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+                - s3:GetBucketLocation
+              Resource:
+                - Fn::Sub: "arn:aws:s3:::${CacheBucket}"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource:
+                - Fn::Sub: "arn:aws:s3:::${CacheBucket}/*"
+            - Effect: Allow
+              Action:
+                - s3:ListAllMyBuckets
+              Resource: "*"
+      Environment:
+        Variables:
+          cacheBucket:
+            Fn::If: 
+              - CreateCacheBucket
+              - Fn::Sub: "${AWS::StackName}-cache"
+              - !Ref AWS::NoValue
   LambdaEdgeFunctionRole:
     Type: "AWS::IAM::Role"
     Properties:
