@@ -5,9 +5,6 @@
   "author": "Trey Pendragon",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "^2.368.0"
-  },
-  "devDependencies": {
-    "aws-sdk": "^2.368.0"
+    "@aws-sdk/client-s3": "^3.216.0"
   }
 }

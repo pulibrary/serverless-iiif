@@ -1,15 +1,15 @@
-'use strict';
+import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3"
 
-const AWS = require('aws-sdk');
-const getCached = (bucket, key) => {
-  const s3 = new AWS.S3();
-  s3.headObject({ Bucket: bucket, Key: key }, (err) => {
-    if (err) {
-      return false;
-    } else {
-      return true;
-    }
-  });
+const getCached = async (bucket, key) => {
+  const client = new S3Client({});
+  try {
+    await client.send(
+      new HeadObjectCommand({ Bucket: bucket, Key: key })
+    );
+    return true;
+  } catch (_) {
+    return false;
+  }
 };
 
 module.exports.viewerRequest = (event, context, callback) => {
