@@ -31,11 +31,6 @@ const isBase64 = (result) => {
   return /^image\//.test(result.contentType);
 };
 
-const isTooLarge = (content) => {
-  const payloadLimit = (6 * 1024 * 1024) / 1.4;
-  return content.length > payloadLimit;
-};
-
 const getRegion = (context) => {
   return context.invokedFunctionArn.match(/^arn:aws:lambda:(\w+-\w+-\d+):/)[1];
 };

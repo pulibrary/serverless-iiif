@@ -32,9 +32,9 @@ const handleRequestFunc = async (event, context, callback) => {
 };
 
 const handleImageRequestFunc = async (event, context, callback) => {
-  const { getUri, isTooLarge } = helpers;
+  const { getUri } = helpers;
   const { streamResolver, dimensionResolver } = resolvers.resolverFactory(event, preflight);
-  const { getCached, makeCache } = cache;
+  const { makeCache } = cache;
 
   let resource;
   try {
@@ -46,9 +46,12 @@ const handleImageRequestFunc = async (event, context, callback) => {
     let response;
     const result = await resource.execute();
 
-    if (isTooLarge(result.body) || shouldCache) {
+    if (shouldCache) {
       await makeCache(key, result);
-      response = forceRedirect(uri);
+      response = {
+        statusCode: 200,
+        body: `Image cached: ${key}`
+      };
     } else {
       response = makeResponse(result);
     }
@@ -56,16 +59,6 @@ const handleImageRequestFunc = async (event, context, callback) => {
   } catch (err) {
     return errorHandler.errorHandler(err, event, context, resource, callback);
   }
-};
-
-const forceRedirect = (uri) => {
-  return {
-    status: '302',
-    statusDescription: 'Found',
-    headers: {
-      location: [{ value: uri }]
-    }
-  };
 };
 
 const makeResponse = (result) => {
