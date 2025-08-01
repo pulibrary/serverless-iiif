@@ -4,7 +4,9 @@
   "description": "Edge Lambda Converter for IIIF",
   "author": "Trey Pendragon",
   "license": "Apache-2.0",
-  "dependencies": {},
+  "dependencies": {
+    "aws-sdk": "^2.368.0"
+  },
   "devDependencies": {
     "aws-sdk": "^2.368.0"
   }

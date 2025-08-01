@@ -202,13 +202,6 @@ Resources:
               Action:
                 - s3:ListAllMyBuckets
               Resource: "*"
-      Environment:
-        Variables:
-          cacheBucket:
-            Fn::If: 
-              - CreateCacheBucket
-              - Fn::Sub: "${AWS::StackName}-cache"
-              - !Ref AWS::NoValue
   LambdaEdgeFunctionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -768,6 +761,13 @@ Resources:
               Enabled: true
               OriginShieldRegion:
                 Fn::Sub: "${AWS::Region}"
+            OriginCustomHeaders:
+              - HeaderName: iiif-cache-bucket
+                HeaderValue:
+                  Fn::If:
+                    - CreateCacheBucket
+                    - Fn::Sub: "${AWS::StackName}-cache"
+                    - !Ref AWS::NoValue
           - Fn::If:
               - CreateCacheBucket
               - Id: IiifCache
