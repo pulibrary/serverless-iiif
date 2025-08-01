@@ -14,26 +14,28 @@ const maxWidth = 2000;
 
 const preflight = process.env.preflight === 'true';
 
-const handleRequestFunc = streamifyResponse(async (event, context, callback) => {
+const handleRequestFunc = streamifyResponse(async (event, context) => {
   const { eventPath, fileMissing, getRegion } = helpers;
 
   AWS.config.region = getRegion(context);
   context.callbackWaitsForEmptyEventLoop = false;
 
+  let response;
   if (event.httpMethod === 'OPTIONS') {
     // OPTIONS REQUEST
-    return callback(null, { statusCode: 204, body: null });
+    response = { statusCode: 204, body: null };
   } else if (fileMissing(event)) {
     // INFO.JSON REQUEST
     const location = eventPath(event) + '/info.json';
-    return callback(null, { statusCode: 302, headers: { Location: location }, body: 'Redirecting to info.json' });
+    response = { statusCode: 302, headers: { Location: location }, body: 'Redirecting to info.json' };
   } else {
     // IMAGE REQUEST
-    return await handleImageRequestFunc(event, context, callback);
+    response = await handleImageRequestFunc(event, context);
   }
+  return helpers.addCorsHeaders(event, response);
 });
 
-const handleImageRequestFunc = async (event, context, callback) => {
+const handleImageRequestFunc = async (event, context) => {
   const { getUri } = helpers;
   const { streamResolver, dimensionResolver } = resolvers.resolverFactory(event, preflight);
   const { makeCache } = cache;
@@ -50,11 +52,9 @@ const handleImageRequestFunc = async (event, context, callback) => {
 
     if (shouldCache) {
       await makeCache(key, result);
-      response = makeResponse(result);
-    } else {
-      response = makeResponse(result);
     }
-    return callback(null, response);
+
+    makeResponse(result)
   } catch (err) {
     return errorHandler.errorHandler(err, event, context, resource, callback);
   }
