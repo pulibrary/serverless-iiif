@@ -766,15 +766,14 @@ Resources:
               - CreateCacheBucket
               - - Id: IiifOrigins
                   Members:
-                    Quantity: 3
+                    Quantity: 2
                     Items:
                       - OriginId: IiifCache
                       - OriginId: IiifApi
-                      - OriginId: IiifCache
                   FailoverCriteria:
                       StatusCodes:
-                          Items: [404]
-                          Quantity: 1
+                          Items: [403,404]
+                          Quantity: 2
               - []
         DefaultCacheBehavior:
           TargetOriginId: 

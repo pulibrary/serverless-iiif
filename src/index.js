@@ -48,7 +48,7 @@ const handleImageRequestFunc = async (event, context, callback) => {
 
     if (isTooLarge(result.body) || shouldCache) {
       await makeCache(key, result);
-      response = forceFailover();
+      response = forceRedirect(uri);
     } else {
       response = makeResponse(result);
     }
@@ -58,11 +58,16 @@ const handleImageRequestFunc = async (event, context, callback) => {
   }
 };
 
-const forceFailover = () => {
+const forceRedirect = (uri) => {
   return {
-    statusCode: 404, // Use 404 to force CloudFront to fail over to the cache
-    isBase64Encoded: false,
-    body: ''
+    status: '302',
+    statusDescription: 'Found',
+    headers: {
+        location: [{
+            key: 'Location',
+            value: uri,
+        }],
+    },
   };
 };
 
