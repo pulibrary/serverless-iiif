@@ -89,7 +89,6 @@ describe('index.handler', () => {
     it('works with base64 image.', async () => {
       cache.getCached = jest.fn().mockImplementationOnce(async () => null);
       helpers.isBase64 = jest.fn().mockImplementationOnce(() => true);
-      helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
 
       IIIF.Processor = jest.fn().mockImplementationOnce(() => {
         return {
@@ -122,7 +121,6 @@ describe('index.handler', () => {
       });
       cache.getCached = jest.fn().mockImplementationOnce(async () => null);
       helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
-      helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
 
       const expected = {
         arg1: null,
@@ -157,33 +155,6 @@ describe('index.handler', () => {
         }
       }
       const result = await handler(event, context, callback);
-      expect(result).toEqual(expected);
-    });
-
-    it('caches file and returns 404 to force failover when result is too large to return directly', async () => {
-      cache.getCached = jest.fn().mockImplementationOnce(async () => null);
-      cache.makeCache = jest.fn().mockImplementationOnce(async () => '[PRESIGNED CACHE URL]');
-      helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
-      helpers.isTooLarge = jest.fn().mockImplementationOnce(() => true);
-      errorHandler.errorHandler = jest.fn().mockImplementationOnce(() => null);
-      IIIF.Processor = jest.fn().mockImplementationOnce(() => {
-        return {
-          execute: async function () {
-            return { body: body };
-          }
-        };
-      });
-
-      const expected = {
-        arg1: null,
-        arg2: {
-          statusCode: 404,
-          isBase64Encoded: false,
-          body: ''
-        }
-      }
-      const result = await handler(event, context, callback);
-      expect(cache.makeCache).toHaveBeenCalled();
       expect(result).toEqual(expected);
     });
 

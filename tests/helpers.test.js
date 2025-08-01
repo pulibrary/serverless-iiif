@@ -1,5 +1,5 @@
 /* eslint-env jest */
-const { eventPath, fileMissing, getUri, isBase64, isTooLarge, getRegion } = require('../src/helpers');
+const { eventPath, fileMissing, getUri, isBase64, getRegion } = require('../src/helpers');
 
 describe('helper functions', () => {
   describe('eventPath', () => {
@@ -92,22 +92,6 @@ describe('helper functions', () => {
         contentType: 'text/html'
       };
       expect(isBase64(result)).toEqual(false);
-    });
-  });
-
-  describe('isTooLarge', () => {
-    const payloadLimit = (6 * 1024 * 1024) / 1.4;
-    it('is > 6MB', () => {
-      const content = {
-        length: payloadLimit + 1
-      };
-      expect(isTooLarge(content)).toEqual(true);
-    });
-    it('is < 6MB', () => {
-      const content = {
-        length: payloadLimit - 1
-      };
-      expect(isTooLarge(content)).toEqual(false);
     });
   });
 

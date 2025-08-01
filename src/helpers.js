@@ -47,7 +47,6 @@ module.exports = {
   getUri: getUri,
   includeStage: includeStage,
   isBase64: isBase64,
-  isTooLarge: isTooLarge,
   getRegion: getRegion,
   parseDensity: parseDensity
 };
