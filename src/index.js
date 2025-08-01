@@ -32,7 +32,7 @@ const handleRequestFunc = streamifyResponse(async (event, context) => {
     // IMAGE REQUEST
     response = await handleImageRequestFunc(event, context);
   }
-  return helpers.addCorsHeaders(event, response);
+  return response;
 });
 
 const handleImageRequestFunc = async (event, context) => {

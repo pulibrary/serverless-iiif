@@ -1,35 +1,3 @@
-const SafelistedResponseHeaders = 'cache-control,content-language,content-length,content-type,date,expires,last-modified,pragma';
-const CorsDefaults = {
-  AllowCredentials: 'false',
-  AllowOrigin: '*',
-  AllowHeaders: '*',
-  ExposeHeaders: SafelistedResponseHeaders,
-  MaxAge: '3600'
-};
-
-const corsSetting = (name) => {
-  return process.env[`cors${name}`] || CorsDefaults[name];
-};
-
-const allowOriginValue = (corsAllowOrigin, event) => {
-  if (corsAllowOrigin === 'REFLECT_ORIGIN') {
-    return getHeaderValue(event, 'origin') || '*';
-  }
-  return corsAllowOrigin;
-};
-
-const addCorsHeaders = (event, response) => {
-  response.headers = {
-    ...response.headers,
-    'Access-Control-Allow-Credentials': corsSetting('AllowCredentials'),
-    'Access-Control-Allow-Origin': allowOriginValue(corsSetting('AllowOrigin'), event),
-    'Access-Control-Allow-Headers': corsSetting('AllowHeaders'),
-    'Access-Control-Expose-Headers': corsSetting('ExposeHeaders'),
-    'Access-Control-Max-Age': corsSetting('MaxAge')
-  };
-  return response;
-};
-
 const eventPath = (event) => {
   if (event.headers["x-original-uri"]) {
     console.log(`Original URI: ${event.headers["x-original-uri"]}`)
@@ -74,7 +42,6 @@ const parseDensity = (value) => {
 };
 
 module.exports = {
-  addCorsHeaders: addCorsHeaders,
   eventPath: eventPath,
   fileMissing: fileMissing,
   getUri: getUri,
