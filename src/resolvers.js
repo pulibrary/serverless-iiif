@@ -16,10 +16,7 @@ const s3Stream = async (location, callback) => {
 // Compute default stream location from ID
 const defaultStreamLocation = (id) => {
   const sourceBucket = process.env.tiffBucket;
-  const resolverTemplate = process.env.resolverTemplate || '%s.tif';
-  const replacementCount = resolverTemplate.match(/%.*?s/g).length;
-  const args = new Array(replacementCount).fill(id);
-  const key = util.format(resolverTemplate, ...args);
+  const key = decodeURIComponent(id + '.tif');
 
   return { Bucket: sourceBucket, Key: key };
 };
