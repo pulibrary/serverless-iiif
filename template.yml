@@ -216,6 +216,7 @@ Resources:
         Rules:
           - Status: Enabled
             ExpirationInDays: 1
+            ObjectSizeGreaterThan: 4000000
   CacheBucketPolicy:
     Type: "AWS::S3::BucketPolicy"
     Condition: CreateCacheBucketAndDistribution
@@ -671,6 +672,7 @@ Resources:
                   HeaderBehavior: "whitelist"
                   Headers:
                     - "x-original-uri"
+                    - "x-cache-iiif-request"
               CookiesConfig:
                   CookieBehavior: "none"
               QueryStringsConfig:

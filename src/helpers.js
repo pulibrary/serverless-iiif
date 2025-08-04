@@ -18,15 +18,6 @@ const getUri = (event) => {
   return uri;
 };
 
-const includeStage = (event) => {
-  if ('includeStage' in process.env) {
-    return ['true', 'yes'].indexOf(process.env.includeStage.toLowerCase()) > -1;
-  } else {
-    const host = event.headers.Host;
-    return host.match(/\.execute-api\.\w+?-\w+?-\d+?\.amazonaws\.com$/);
-  }
-};
-
 const isBase64 = (result) => {
   return /^image\//.test(result.contentType);
 };
@@ -34,6 +25,10 @@ const isBase64 = (result) => {
 const isTooLarge = (content) => {
   const payloadLimit = (6 * 1024 * 1024) / 1.4;
   return content.length > payloadLimit;
+};
+
+const forceCache = (event) => {
+  return event.headers['x-cache-iiif-request'] || false;
 };
 
 const getRegion = (context) => {
@@ -50,9 +45,9 @@ module.exports = {
   eventPath: eventPath,
   fileMissing: fileMissing,
   getUri: getUri,
-  includeStage: includeStage,
   isBase64: isBase64,
   isTooLarge: isTooLarge,
+  forceCache: forceCache,
   getRegion: getRegion,
   parseDensity: parseDensity
 };
