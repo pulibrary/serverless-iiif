@@ -88,5 +88,6 @@ module.exports = {
   isBase64,
   isTooLarge,
   getRegion,
-  parseDensity
+  parseDensity,
+  forceCache
 };

@@ -476,8 +476,6 @@ Resources:
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
             DomainName: !Select [2, !Split ["/", !GetAtt IiifFunctionUrl.FunctionUrl]]
-            # OriginPath:
-            #   Fn::Sub: "/${IiifApi.Stage}"
             OriginShield:
               Enabled: true
               OriginShieldRegion:
@@ -508,12 +506,12 @@ Resources:
                   Members:
                     Quantity: 2
                     Items:
-                      - OriginId: IiifLambda
                       - OriginId: IiifCache
+                      - OriginId: IiifLambda
                   FailoverCriteria:
                       StatusCodes:
-                          Items: [404]
-                          Quantity: 1
+                          Items: [403,404]
+                          Quantity: 2
               - []
         DefaultCacheBehavior:
           TargetOriginId: 

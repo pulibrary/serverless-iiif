@@ -1,5 +1,6 @@
 const IIIF = require('iiif-processor');
 const debug = require('debug')('serverless-iiif:lambda');
+const cache = require('./cache');
 const helpers = require('./helpers');
 const resolvers = require('./resolvers');
 const { errorHandler } = require('./error');
@@ -77,14 +78,19 @@ const executeResource = async (uri, streamResolver, dimensionFunction, density, 
 
 const handleResourceRequestFunc = async (event, context) => {
   const density = helpers.parseDensity(process.env.density);
-  const { getUri } = helpers;
+  const { getUri, forceCache } = helpers;
   const preflight = process.env.preflight === 'true';
   const { streamResolver, dimensionResolver } = resolvers.resolverFactory(event, preflight);
+  const { makeCache } = cache;
 
   let resource;
   try {
     const uri = getUri(event);
     const result = await executeResource(uri, streamResolver, dimensionResolver, density);
+    const key = new URL(uri).pathname.replace(/^\//, '');
+    if (forceCache(event)) {
+      await makeCache(key, result);
+    }
     return makeResponse(result);
   } catch (err) {
     return errorHandler(err, event, context, resource);
