@@ -3,24 +3,12 @@ const { eventPath, fileMissing, getUri, isBase64, isTooLarge, getRegion } = requ
 
 describe('helper functions', () => {
   describe('eventPath', () => {
-    it('does not includesStage', () => {
-      delete process.env.includeStage;
+    it('does not include stage', () => {
       const event = {
         headers: { Host: 'host' },
         path: '/path/'
       };
       expect(eventPath(event)).toEqual('/path');
-    });
-    it('includesStage', () => {
-      process.env.includeStage = 'true';
-      const event = {
-        headers: { Host: 'host' },
-        requestContext: {
-          stage: 'prod'
-        },
-        path: '/path/'
-      };
-      expect(eventPath(event)).toEqual('/prod/path');
     });
   });
 

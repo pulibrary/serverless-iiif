@@ -18,15 +18,6 @@ const getUri = (event) => {
   return uri;
 };
 
-const includeStage = (event) => {
-  if ('includeStage' in process.env) {
-    return ['true', 'yes'].indexOf(process.env.includeStage.toLowerCase()) > -1;
-  } else {
-    const host = event.headers.Host;
-    return host.match(/\.execute-api\.\w+?-\w+?-\d+?\.amazonaws\.com$/);
-  }
-};
-
 const isBase64 = (result) => {
   return /^image\//.test(result.contentType);
 };
@@ -54,7 +45,6 @@ module.exports = {
   eventPath: eventPath,
   fileMissing: fileMissing,
   getUri: getUri,
-  includeStage: includeStage,
   isBase64: isBase64,
   isTooLarge: isTooLarge,
   forceCache: forceCache,
