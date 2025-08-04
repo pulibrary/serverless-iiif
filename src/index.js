@@ -32,7 +32,7 @@ const handleRequestFunc = async (event, context, callback) => {
 };
 
 const handleImageRequestFunc = async (event, context, callback) => {
-  const { getUri, isTooLarge } = helpers;
+  const { getUri, isTooLarge, forceCache } = helpers;
   const { streamResolver, dimensionResolver } = resolvers.resolverFactory(event, preflight);
   const { getCached, makeCache } = cache;
 
@@ -42,7 +42,6 @@ const handleImageRequestFunc = async (event, context, callback) => {
     resource = new IIIF.Processor(uri, streamResolver, { dimensionFunction: dimensionResolver, density: density, maxWidth: maxWidth });
     const key = new URL(uri).pathname.replace(/^\//, '');
     const cached = resource.filename === 'info.json' ? false : await getCached(key);
-    const shouldCache = event.headers['x-cache-iiif-request'] || false;
 
     let response;
     if (cached) {
@@ -50,7 +49,7 @@ const handleImageRequestFunc = async (event, context, callback) => {
     } else {
       const result = await resource.execute();
 
-      if (isTooLarge(result.body) || shouldCache) {
+      if (isTooLarge(result.body) || forceCache(event)) {
         await makeCache(key, result);
         response = forceFailover();
       } else {

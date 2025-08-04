@@ -36,6 +36,10 @@ const isTooLarge = (content) => {
   return content.length > payloadLimit;
 };
 
+const forceCache = (event) => {
+  return event.headers['x-cache-iiif-request'] || false;
+};
+
 const getRegion = (context) => {
   return context.invokedFunctionArn.match(/^arn:aws:lambda:(\w+-\w+-\d+):/)[1];
 };
@@ -53,6 +57,7 @@ module.exports = {
   includeStage: includeStage,
   isBase64: isBase64,
   isTooLarge: isTooLarge,
+  forceCache: forceCache,
   getRegion: getRegion,
   parseDensity: parseDensity
 };

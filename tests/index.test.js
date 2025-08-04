@@ -41,6 +41,7 @@ describe('index.handler', () => {
     const body = '[INFO JSON]';
     helpers.fileMissing = jest.fn().mockImplementationOnce(() => false);
     helpers.getUri = jest.fn().mockImplementationOnce(() => 'https://iiif.example.edu/iiif/2/image_id/info.json');
+    helpers.forceCache = jest.fn().mockImplementationOnce(() => false);
 
     IIIF.Processor = jest.fn().mockImplementationOnce(() => {
       return {
@@ -55,7 +56,7 @@ describe('index.handler', () => {
       arg1: null, 
       arg2: {
         statusCode: 200,
-        headers: { 'Content-Type': undefined, 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': undefined, 'Cache-Control': 's-maxage=31536000', 'Access-Control-Allow-Origin': '*' },
         isBase64Encoded: false,
         body: Buffer.from(body)
       }
@@ -90,6 +91,7 @@ describe('index.handler', () => {
       cache.getCached = jest.fn().mockImplementationOnce(async () => null);
       helpers.isBase64 = jest.fn().mockImplementationOnce(() => true);
       helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
+      helpers.forceCache = jest.fn().mockImplementationOnce(() => false);
 
       IIIF.Processor = jest.fn().mockImplementationOnce(() => {
         return {
@@ -103,7 +105,7 @@ describe('index.handler', () => {
         arg1: null,
         arg2: {
           statusCode: 200,
-          headers: { 'Content-Type': undefined, 'Access-Control-Allow-Origin': '*' },
+          headers: { 'Content-Type': undefined, 'Cache-Control': 's-maxage=31536000', 'Access-Control-Allow-Origin': '*' },
           isBase64Encoded: true,
           body:  Buffer.from(body).toString('base64')
         }
@@ -123,12 +125,13 @@ describe('index.handler', () => {
       cache.getCached = jest.fn().mockImplementationOnce(async () => null);
       helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
       helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
+      helpers.forceCache = jest.fn().mockImplementationOnce(() => false);
 
       const expected = {
         arg1: null,
         arg2: {
           statusCode: 200,
-          headers: { 'Content-Type': undefined, 'Access-Control-Allow-Origin': '*' },
+          headers: { 'Content-Type': undefined, 'Cache-Control': 's-maxage=31536000', 'Access-Control-Allow-Origin': '*' },
           isBase64Encoded: false,
           body: body
         }
@@ -165,6 +168,35 @@ describe('index.handler', () => {
       cache.makeCache = jest.fn().mockImplementationOnce(async () => '[PRESIGNED CACHE URL]');
       helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
       helpers.isTooLarge = jest.fn().mockImplementationOnce(() => true);
+      helpers.forceCache = jest.fn().mockImplementationOnce(() => true);
+      errorHandler.errorHandler = jest.fn().mockImplementationOnce(() => null);
+      IIIF.Processor = jest.fn().mockImplementationOnce(() => {
+        return {
+          execute: async function () {
+            return { body: body };
+          }
+        };
+      });
+
+      const expected = {
+        arg1: null,
+        arg2: {
+          statusCode: 404,
+          isBase64Encoded: false,
+          body: ''
+        }
+      }
+      const result = await handler(event, context, callback);
+      expect(cache.makeCache).toHaveBeenCalled();
+      expect(result).toEqual(expected);
+    });
+
+    it('caches file and returns 404 to force failover when request has x-cache-iiif-request header', async () => {
+      cache.getCached = jest.fn().mockImplementationOnce(async () => null);
+      cache.makeCache = jest.fn().mockImplementationOnce(async () => '[PRESIGNED CACHE URL]');
+      helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
+      helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
+      helpers.forceCache = jest.fn().mockImplementationOnce(() => true);
       errorHandler.errorHandler = jest.fn().mockImplementationOnce(() => null);
       IIIF.Processor = jest.fn().mockImplementationOnce(() => {
         return {
