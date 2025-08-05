@@ -77,12 +77,14 @@ describe('helper functions', () => {
   describe('fileMissing', () => {
     it('has a missing file', () => {
       const event = {
+        headers: { host: 'host' },
         requestContext: { http: { path: 'http://path' } }
       };
       expect(fileMissing(event)).toEqual(true);
     });
     it('does not have a missing file', () => {
       const event = {
+        headers: { host: 'host' },
         requestContext: { http: { path: 'http://path/file.json' } }
       };
       expect(fileMissing(event)).toEqual(false);

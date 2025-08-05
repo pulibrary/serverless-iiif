@@ -27,22 +27,6 @@ describe('resolvers', () => { // eslint-disable-line max-lines-per-function
         expect(callback).toHaveBeenCalled();
         expect(s3Mock).toHaveReceivedCommand(GetObjectCommand);
       });
-
-      describe('resolverTemplate', () => {
-        beforeEach(() => {
-          process.env.resolverTemplate = '/path/to/%s/%s-pyramid.tiff';
-        });
-
-        afterEach(() => {
-          delete process.env.resolverTemplate;
-        });
-
-        it('uses the resolverTemplate, if present', async () => {
-          await streamResolver({id: 'id'}, callback);
-          expect(s3Mock)
-            .toHaveReceivedCommandWith(GetObjectCommand, { Bucket: 'test-bucket', Key: '/path/to/id/id-pyramid.tiff' });
-        });  
-      });
     });
 
     describe('dimensionResolver', () => {

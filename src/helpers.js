@@ -31,12 +31,11 @@ const addCorsHeaders = (event, response) => {
 };
 
 const eventPath = (event) => {
-  if (event.headers["x-original-uri"]) {
-    console.log(`Original URI: ${event.headers["x-original-uri"]}`);
-    console.log(`Path: ${event.path}`);
-    return event.headers["x-original-uri"].replace(/\/*$/, '');
+  if (event.headers['x-original-uri']) {
+    return event.headers['x-original-uri'].replace(/\/*$/, '');
+  } else {
+    return event.requestContext?.http?.path.replace(/\/*$/, '');
   }
-  return event.path.replace(/\/*$/, '');
 };
 
 const fileMissing = (event) => {

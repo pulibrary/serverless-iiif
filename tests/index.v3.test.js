@@ -2,6 +2,7 @@
 const IIIF = require('iiif-processor');
 const { handler } = require('../src/index');
 const helpers = require('../src/helpers');
+const cache = require('../src/cache');
 const callHandler = require('./stream-handler');
 
 describe("index.handler /iiif/3", () => {
@@ -153,6 +154,7 @@ describe("index.handler /iiif/3", () => {
       });
       helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
       helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
+      helpers.forceCache = jest.fn().mockImplementationOnce(() => false);
 
       const expected = {
         statusCode: 200,
@@ -163,6 +165,37 @@ describe("index.handler /iiif/3", () => {
         }
       };
       const result = await callHandler(handler, event, context);
+      expect(result).toMatchObject(expected);
+    });
+
+    it('caches file when request has x-cache-iiif-request header', async () => {
+      cache.makeCache = jest.fn().mockImplementationOnce(async () => '[PRESIGNED CACHE URL]');
+      helpers.isBase64 = jest.fn().mockImplementationOnce(() => false);
+      helpers.isTooLarge = jest.fn().mockImplementationOnce(() => false);
+      helpers.forceCache = jest.fn().mockImplementationOnce(() => true);
+
+      IIIF.Processor = jest.fn().mockImplementationOnce(() => {
+        return {
+          id: "image_id",
+          execute: async function () {
+            return { 
+              body: body,
+              canonicalLink: 'https://iiif.example.edu/iiif/3/image_id/full/full/0/default.jpg',
+              profileLink: 'http://iiif.io/api/image/3/level2.json' };
+          },
+        };
+      });
+
+      const expected = {
+        statusCode: 200,
+        isBase64Encoded: false,
+        body: body,
+        headers: {
+          Link: '<https://iiif.example.edu/iiif/3/image_id/full/full/0/default.jpg>; rel=canonical,<http://iiif.io/api/image/3/level2.json>; rel=profile'
+        }
+      };
+      const result = await callHandler(handler, event, context);
+      expect(cache.makeCache).toHaveBeenCalled();
       expect(result).toMatchObject(expected);
     });
 
