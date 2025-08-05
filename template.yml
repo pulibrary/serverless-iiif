@@ -12,6 +12,75 @@ Metadata:
     SemanticVersion: 3.1.2
     SourceCodeUrl: https://github.com/samvera-labs/serverless-iiif
 Parameters:
+  CorsAllowCredentials:
+    Type: String
+    Description: >
+      Value of the CORS `Access-Control-Allow-Credentials` response header.
+      Must be `true` to allow requests with `Authorization` and/or
+      `Cookie` headers.
+    AllowedValues:
+      - false
+      - true
+    Default: false
+  CorsAllowHeaders:
+    Type: String
+    Description: Value of the CORS `Access-Control-Allow-Headers` response header
+    Default: "*"
+  CorsAllowOrigin:
+    Type: String
+    Description: >
+      Value of the CORS `Access-Control-Allow-Origin` response header.
+      Use the special value `REFLECT_ORIGIN` to copy the value from the
+      `Origin` request header (required to emulate `*` for XHR requests
+      using `Authorization` and/or `Cookie` headers).
+    Default: "*"
+  CorsExposeHeaders:
+    Type: String
+    Description: Value of the CORS `Access-Control-Expose-Headers` response header
+    Default: cache-control,content-language,content-length,content-type,date,expires,last-modified,pragma
+  CorsMaxAge:
+    Type: Number
+    Description: Value of the CORS `Access-Control-MaxAge` response header
+    Default: 3600
+  ForceHost:
+    Type: String
+    Description: Forced hostname to use in responses
+    Default: ""
+  IiifLambdaMemory:
+    Type: Number
+    Description: The memory provisioned for the lambda.
+    MinValue: 128
+    MaxValue: 10240
+    Default: 3008
+  PixelDensity:
+    Type: Number
+    Description: Hardcoded DPI/Pixel Density/Resolution to encode in output images
+    Default: 0
+    MinValue: 0
+  Preflight:
+    Type: String
+    Description: Indicates whether the function should expect preflight headers
+    AllowedValues:
+      - false
+      - true
+    Default: false
+  PyramidLimit:
+    Type: Number
+    Description: Smallest pyramid image dimension. Set to `0` to prevent server from auto-calculating pyramid page sizes.
+    MinValue: 0
+    Default: 256
+  ResolverTemplate:
+    Type: String
+    Description: A printf-style format string that determines the location of source image within the bucket given the image ID
+    Default: "%s.tif"
+  SharpLayer:
+    Type: String
+    Description: >
+      ARN of a custom AWS Lambda Layer containing the sharp and libvips dependencies. Use the special value `JP2` 
+      to use the managed JPEG2000-compatible layer, or `INTERNAL` to use the built-in dependencies (without JPEG2000
+      support).
+    AllowedPattern: "^INTERNAL$|^JP2$|^arn:aws:lambda:.*:.*:layer:.+:\\d+$"
+    Default: "JP2"
   UseCacheBucket:
     Type: String
     Description: Use an S3 Bucket to store responses > 6MB
@@ -54,11 +123,6 @@ Parameters:
     Type: String
     Description: ARN of the ACM SSL Certification to use for the API Gateway Endpoint or CloudFront Cache
     Default: ""
-  PixelDensity:
-    Type: Number
-    Description: Hardcoded DPI/Pixel Density/Resolution to encode in output images
-    Default: 0
-    MinValue: 0
   SourceBucket:
     Type: String
     Description: Name of bucket containing source images
@@ -66,10 +130,6 @@ Parameters:
     Type: String
     Description: Name of the API stage to be deployed
     Default: latest
-  IiifLambdaMemory:
-    Type: Number
-    Description: Memory setting for the lambda.
-    Default: 3008
   IiifLambdaTimeout:
     Type: Number
     Description: The timeout for the lambda.
@@ -233,12 +293,16 @@ Resources:
             Principal:
               CanonicalUser:
                 Fn::GetAtt: CachingIdentity.S3CanonicalUserId
+
   IiifFunction:
     Type: "AWS::Serverless::Function"
     Properties:
       Runtime: nodejs22.x
       Handler: index.handler
       MemorySize: !Ref IiifLambdaMemory
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
       Timeout:
         Ref: IiifLambdaTimeout
       CodeUri: ./src
@@ -275,6 +339,11 @@ Resources:
               Resource: "*"
       Environment:
         Variables:
+          corsAllowCredentials: !Ref CorsAllowCredentials
+          corsAllowOrigin: !Ref CorsAllowOrigin
+          corsAllowHeaders: !Ref CorsAllowHeaders
+          corsExposeHeaders: !Ref CorsExposeHeaders
+          corsMaxAge: !Ref CorsMaxAge
           cacheBucket:
             Fn::If: 
               - CreateCacheBucket
@@ -298,342 +367,14 @@ Resources:
           preflight:
             Fn::If:
               - UseViewerRequest
-              - true
+              - false
               - !Ref AWS::NoValue
+          resolverTemplate: !Ref ResolverTemplate
           tiffBucket:
             Fn::Sub: "${SourceBucket}"
           DD_KMS_API_KEY: "AQICAHjNoNXrp3Thd1UL3np+Y/XCnSL7Qz4WnjX94YIt8xU8swEtnSpn/igd3vmQIASzwzbxAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMRJdyqtfH+l/fCVhMAgEQgDOC6XkoNRyTuE/i4ICJWXqlWwowFpcU5IGyAlReULvVErzUfu1TM9MiaKYGo2vhSbGNjKI="
           DD_FLUSH_TO_LOG: True
-      Events:
-        GetId:
-          Type: Api
-          Properties:
-            Path: /iiif/2/{id}
-            Method: GET
-            RestApiId:
-              Ref: IiifApi
-        OptionsId:
-          Type: Api
-          Properties:
-            Path: /iiif/2/{id}
-            Method: OPTIONS
-            RestApiId:
-              Ref: IiifApi
-        GetInfoJson:
-          Type: Api
-          Properties:
-            Path: /iiif/2/{id}/info.json
-            Method: GET
-            RestApiId:
-              Ref: IiifApi
-        OptionsInfoJson:
-          Type: Api
-          Properties:
-            Path: /iiif/2/{id}/info.json
-            Method: OPTIONS
-            RestApiId:
-              Ref: IiifApi
-        GetImage:
-          Type: Api
-          Properties:
-            Path: /iiif/2/{id}/{proxy+}
-            Method: GET
-            RestApiId:
-              Ref: IiifApi
-        OptionsImage:
-          Type: Api
-          Properties:
-            Path: /iiif/2/{id}/{proxy+}
-            Method: OPTIONS
-            RestApiId:
-              Ref: IiifApi
-  IiifApi:
-    Type: "AWS::Serverless::Api"
-    Properties:
-      Name:
-        Fn::Sub: "${AWS::StackName}-api"
-      StageName:
-        Fn::Sub: "${StageName}"
-      EndpointConfiguration: "REGIONAL"
-      Cors:
-        AllowMethods: "'GET'"
-        AllowOrigin: "'*'"
-      Auth:
-        ResourcePolicy:
-          CustomStatements:
-            - Effect: Allow
-              Principal: "*"
-              Action: "execute-api:Invoke"
-              Resource: "execute-api:/*/*/*"
-              Condition:
-                StringEquals:
-                  aws:UserAgent: "Amazon CloudFront"
-      DefinitionBody:
-        swagger: "2.0"
-        info:
-          version: "2018-12-14T18:28:00Z"
-        schemes:
-          - "http"
-          - "https"
-        paths:
-          /iiif/2/{id}:
-            get:
-              produces:
-                - "application/json"
-              parameters:
-                - name: "Cookie"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Origin"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Authorization"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "id"
-                  in: "path"
-                  required: true
-                  type: "string"
-              responses:
-                "200":
-                  description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IiifFunction.Arn}/invocations"
-                responses:
-                  default:
-                    statusCode: "200"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws_proxy"
-            options:
-              produces:
-                - "application/json"
-              parameters:
-                - name: "Origin"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Authorization"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "id"
-                  in: "path"
-                  required: true
-                  type: "string"
-              responses:
-                "200":
-                  description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IiifFunction.Arn}/invocations"
-                responses:
-                  default:
-                    statusCode: "200"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws_proxy"
-          /iiif/2/{id}/info.json:
-            get:
-              produces:
-                - "application/json"
-              parameters:
-                - name: "Cookie"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Origin"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Authorization"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "id"
-                  in: "path"
-                  required: true
-                  type: "string"
-              responses:
-                "200":
-                  description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: "string"
-                    Access-Control-Allow-Credentials:
-                      type: "string"
-                    Set-Cookie:
-                      type: "string"
-                    Access-Control-Allow-Headers:
-                      type: "string"
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IiifFunction.Arn}/invocations"
-                responses:
-                  default:
-                    statusCode: "200"
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: "'*'"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws_proxy"
-            options:
-              produces:
-                - "application/json"
-              parameters:
-                - name: "Origin"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Authorization"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "id"
-                  in: "path"
-                  required: true
-                  type: "string"
-              responses:
-                "200":
-                  description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: "string"
-                    Access-Control-Allow-Credentials:
-                      type: "string"
-                    Access-Control-Allow-Headers:
-                      type: "string"
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IiifFunction.Arn}/invocations"
-                responses:
-                  default:
-                    statusCode: "200"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws_proxy"
-          /iiif/2/{id}/{proxy+}:
-            get:
-              produces:
-                - "application/json"
-              parameters:
-                - name: "proxy"
-                  in: "path"
-                  required: true
-                  type: "string"
-                - name: "Cookie"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Origin"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Authorization"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "id"
-                  in: "path"
-                  required: true
-                  type: "string"
-              responses:
-                "200":
-                  description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: "string"
-                    Access-Control-Allow-Credentials:
-                      type: "string"
-                    Set-Cookie:
-                      type: "string"
-                    Access-Control-Allow-Headers:
-                      type: "string"
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IiifFunction.Arn}/invocations"
-                responses:
-                  default:
-                    statusCode: "200"
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Origin: "'*'"
-                    contentHandling: "CONVERT_TO_BINARY"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                cacheNamespace: "frz8df"
-                cacheKeyParameters:
-                  - "method.request.path.proxy"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws_proxy"
-            options:
-              produces:
-                - "application/json"
-              parameters:
-                - name: "proxy"
-                  in: "path"
-                  required: true
-                  type: "string"
-                - name: "Origin"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "Authorization"
-                  in: "header"
-                  required: false
-                  type: "string"
-                - name: "id"
-                  in: "path"
-                  required: true
-                  type: "string"
-              responses:
-                "200":
-                  description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
-                  headers:
-                    Access-Control-Allow-Origin:
-                      type: "string"
-                    Access-Control-Allow-Credentials:
-                      type: "string"
-                    Access-Control-Allow-Headers:
-                      type: "string"
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IiifFunction.Arn}/invocations"
-                responses:
-                  default:
-                    statusCode: "200"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                cacheNamespace: "frz8df"
-                cacheKeyParameters:
-                  - "method.request.path.proxy"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws_proxy"
-        definitions:
-          Empty:
-            type: "object"
-            title: "Empty Schema"
-        x-amazon-apigateway-binary-media-types:
-          - "*/*"
+
   CachingIdentity:
     Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
     Condition: CreateDistribution
@@ -731,13 +472,10 @@ Resources:
               SslSupportMethod: 'sni-only'
             - CloudFrontDefaultCertificate: true
         Origins:
-          - Id: IiifApi
+          - Id: IiifLambda
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
-            DomainName:
-              Fn::Sub: "${IiifApi}.execute-api.${AWS::Region}.amazonaws.com"
-            OriginPath:
-              Fn::Sub: "/${IiifApi.Stage}"
+            DomainName: !Select [2, !Split ["/", !GetAtt IiifFunctionUrl.FunctionUrl]]
             OriginShield:
               Enabled: true
               OriginShieldRegion:
@@ -768,16 +506,16 @@ Resources:
                   Members:
                     Quantity: 2
                     Items:
-                      - OriginId: IiifApi
                       - OriginId: IiifCache
+                      - OriginId: IiifLambda
                   FailoverCriteria:
                       StatusCodes:
-                          Items: [404]
-                          Quantity: 1
+                          Items: [403,404]
+                          Quantity: 2
               - []
         DefaultCacheBehavior:
           TargetOriginId: 
-            Fn::If: [CreateCacheBucket, IiifOrigins, IiifApi]
+            Fn::If: [CreateCacheBucket, IiifOrigins, IiifLambda]
           ViewerProtocolPolicy: https-only
           AllowedMethods: ["GET", "HEAD", "OPTIONS"]
           CachedMethods: ["GET", "HEAD", "OPTIONS"]
@@ -823,8 +561,8 @@ Resources:
                 IncludeBody: false
               - !Ref AWS::NoValue
 Outputs:
-  Endpoint:
-    Description: IIIF Endpoint URL
+  EndpointV2:
+    Description: IIIF V2 Endpoint URL
     Value:
       Fn::If:
         - CreateDistribution
@@ -832,13 +570,17 @@ Outputs:
           - DistributionCustomDomain
           - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
           - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
-        - Fn::Sub: "https://${IiifApi}.execute-api.${AWS::Region}.amazonaws.com/${IiifApi.Stage}/iiif/2/"
-  ApiId:
-    Description: API Gateway ID
+        - Fn::Sub: "${IiifFunctionUrl.FunctionUrl}iiif/2"
+  EndpointV3:
+    Description: IIIF V3 Endpoint URL
     Value:
-      Ref: IiifApi
-    Export:
-      Name: !Sub "${AWS::StackName}:ApiId"
+      Fn::If:
+        - CreateDistribution
+        - Fn::If:
+          - DistributionCustomDomain
+          - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
+          - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
+        - Fn::Sub: "${IiifFunctionUrl.FunctionUrl}iiif/2"
   DistributionId:
     Description: Caching Distribution ID
     Value: 
@@ -851,3 +593,15 @@ Outputs:
   LambdaFunction:
     Description: IIIF Lambda Function Name
     Value: !Ref IiifFunction
+  FunctionDomain:
+    Description: IIIF Function Domain Name
+    Value:
+      Fn::Select:
+        - 2
+        - Fn::Split:
+          - "/"
+          - Fn::GetAtt: IiifFunctionUrl.FunctionUrl
+  FunctionUrl:
+    Description: IIIF Function URL
+    Value:
+      Fn::GetAtt: IiifFunctionUrl.FunctionUrl

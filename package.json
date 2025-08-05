@@ -1,14 +1,18 @@
 {
   "name": "serverless-iiif",
-  "version": "3.1.0",
+  "version": "5.1.7",
   "description": "Lambda wrapper for iiif-processor",
   "author": "Michael B. Klein",
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.395.0",
+    "dotenv": "^16.0.3",
     "uri-js": "^4.4.1"
   },
   "devDependencies": {
-    "aws-sdk": "^2.368.0",
+    "@aws-sdk/client-s3": "^3.395.0",
+    "aws-sdk-client-mock": "3.0.0",
+    "aws-sdk-client-mock-jest": "3.0.0",
     "coveralls": "^3.1.0",
     "eslint": "^7.10.0",
     "eslint-config-standard": "^14.1.1",
@@ -17,22 +21,21 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "iiif-processor": "~1.0",
-    "jest": "^26.4.2"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootDir>[/\\\\](build|docs|node_modules|scripts)[/\\\\]"
-    ],
-    "testEnvironment": "node",
-    "moduleDirectories": [
-      "node_modules"
-    ]
+    "iiif-processor": "^5.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "lambda-stream": "^0.4.0",
+    "sharp": "^0.33.5",
+    "yaml": "^2.3.1"
   },
   "scripts": {
-    "test": "node scripts/test.js --env=jsdom"
+    "lint": "eslint src/*.js",
+    "lint-fix": "eslint --fix src/*.js",
+    "test": "node scripts/test.js --env=jsdom",
+    "test-coverage": "node scripts/test.js --env=jsdom --coverage",
+    "build": "sam build -t sam/template.yml --use-container",
+    "deploy": "sam deploy --config-file ./deploy.yml",
+    "deploy-guided": "sam deploy --config-file ./deploy.yml --guided",
+    "delete-stack": "sam delete --config-file ./deploy.yml"
   }
 }
