@@ -439,11 +439,6 @@ Resources:
                       Items:
                         - "*"
                   OriginOverride: true
-              CustomHeadersConfig:
-                  Items:
-                    - Header: "Cache-Control"
-                      Value: "max-age=31536000"
-                      Override: true
               Name:
                 Fn::Sub: "iiif-cloud-${StageName}-ResponseHeadersPolicy"
 
