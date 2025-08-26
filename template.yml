@@ -303,8 +303,7 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: RESPONSE_STREAM
-      Timeout:
-        Ref: IiifLambdaTimeout
+      Timeout: 300
       CodeUri: ./src
       Layers:
         - Ref: Dependencies
