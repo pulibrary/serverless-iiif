@@ -5,3 +5,9 @@ deploy.yaml
 node_modules
 samconfig.toml
 yarn.lock
+
+# Some configs ignore these globally on machines, so make sure they're not
+# ignored.
+!devbox.lock
+!.envrc
+!/bin
