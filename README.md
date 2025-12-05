@@ -18,3 +18,13 @@ yarn install
 * `sam build --use-container`
 * `./deploy.sh staging` will deploy the stack to staging.
 * `./deploy.sh production` will deploy the stack to staging.
+
+## How to clear the cache
+
+It seems that when this service goes down, errors get cached and continue to be served. So when we fix it we need to invalidate the cache
+
+* Go to aws > CloudFront
+* click the ID for iiif-cloud
+* go to "invalidations" tab
+* create invalidation
+* use object path "/*"
