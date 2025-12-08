@@ -17,7 +17,7 @@ yarn install
   - Set default output format to json
 * `sam build --use-container`
 * `./deploy.sh staging` will deploy the stack to staging.
-* `./deploy.sh production` will deploy the stack to staging.
+* `./deploy.sh production` will deploy the stack to production.
 
 ## How to clear the cache
 
