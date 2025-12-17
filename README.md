@@ -7,7 +7,7 @@ Forked from [samvera/serverless-iiif](https://github.com/samvera/serverless-iiif
 1. Install devbox (`./bin/first-time-setup.sh`)
 1. `devbox shell` (run this every time you need to deploy)
 
-### Initial Setup
+### Alternate (non-devbox) Setup
 ```sh
 brew install aws-sam-cli
 asdf install
