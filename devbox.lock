@@ -1,0 +1,298 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "aws-sam-cli@1.135.0": {
+      "last_modified": "2025-08-11T23:54:17Z",
+      "resolved": "github:NixOS/nixpkgs/5a983011e0f4b3b286aaa73e011ce32b1449a528#aws-sam-cli",
+      "source": "devbox-search",
+      "version": "1.135.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/h8lf2a8z2gabxyr7v6mib7gfr2zm6lxd-aws-sam-cli-1.135.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/q8namyfpivrslx67zyg6vkq3vpiwza4a-aws-sam-cli-1.135.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/h8lf2a8z2gabxyr7v6mib7gfr2zm6lxd-aws-sam-cli-1.135.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ncarp651cd96lalaq7wbxy8xlahl7y32-aws-sam-cli-1.135.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/438q9gv94q4rlqjvi8hqm61csx6ipaxq-aws-sam-cli-1.135.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/ncarp651cd96lalaq7wbxy8xlahl7y32-aws-sam-cli-1.135.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mk1mkc90m3ixzmllk8j0s7kzinjx7xkn-aws-sam-cli-1.135.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/3sz031wl50cyalx8xv48nk4xkqq6ylkc-aws-sam-cli-1.135.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/mk1mkc90m3ixzmllk8j0s7kzinjx7xkn-aws-sam-cli-1.135.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/y8rsxkdfz2ii6hnrarpf29gx8pl2v2wi-aws-sam-cli-1.135.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/l68gwmm8arxqc2vzp0vizslkg135z1gv-aws-sam-cli-1.135.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/y8rsxkdfz2ii6hnrarpf29gx8pl2v2wi-aws-sam-cli-1.135.0"
+        }
+      }
+    },
+    "awscli@latest": {
+      "last_modified": "2025-11-23T21:50:36Z",
+      "resolved": "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261#awscli",
+      "source": "devbox-search",
+      "version": "1.42.18",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2clwsf4dvcdh3p7jzfhpa744j467bh87-awscli-1.42.18",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/y89wxym3smjws52ddngi8ml283aifv0n-awscli-1.42.18-dist"
+            }
+          ],
+          "store_path": "/nix/store/2clwsf4dvcdh3p7jzfhpa744j467bh87-awscli-1.42.18"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/8g9bjs1b1pzfy6v53m4580p3bw6w7rcb-awscli-1.42.18",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/j7841jck3pspvc6xvy8bg3avggv55d3s-awscli-1.42.18-dist"
+            }
+          ],
+          "store_path": "/nix/store/8g9bjs1b1pzfy6v53m4580p3bw6w7rcb-awscli-1.42.18"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5vkjqj9fbkay8l7jjkhwnflkbh9qk44l-awscli-1.42.18",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/06d27cjqr6p9j7lsxql85y75182xrwnx-awscli-1.42.18-dist"
+            }
+          ],
+          "store_path": "/nix/store/5vkjqj9fbkay8l7jjkhwnflkbh9qk44l-awscli-1.42.18"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kv1428ahrpdrgidq8g2g9bj2488n2p1k-awscli-1.42.18",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/9jrlm8iz2pcgkwp8lxr2ifd9rla0sb3y-awscli-1.42.18-dist"
+            }
+          ],
+          "store_path": "/nix/store/kv1428ahrpdrgidq8g2g9bj2488n2p1k-awscli-1.42.18"
+        }
+      }
+    },
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2025-11-05T16:44:39Z",
+      "resolved": "github:NixOS/nixpkgs/ffcdcf99d65c61956d882df249a9be53e5902ea5?lastModified=1762361079&narHash=sha256-lz718rr1BDpZBYk7%2BG8cE6wee3PiBUpn8aomG%2FvLLiY%3D"
+    },
+    "lastpass-cli@latest": {
+      "last_modified": "2025-11-23T21:50:36Z",
+      "resolved": "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261#lastpass-cli",
+      "source": "devbox-search",
+      "version": "1.6.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3651z85nvc74nb42srqn5jpz6q9jps62-lastpass-cli-1.6.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3651z85nvc74nb42srqn5jpz6q9jps62-lastpass-cli-1.6.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/x8mnsq4amp04w978cnbsqbs1vjkfm9qy-lastpass-cli-1.6.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/x8mnsq4amp04w978cnbsqbs1vjkfm9qy-lastpass-cli-1.6.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/57jzi111d21b4pprdqp4cp9gfq0fzjs9-lastpass-cli-1.6.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/57jzi111d21b4pprdqp4cp9gfq0fzjs9-lastpass-cli-1.6.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/zvjb88v41hip3vlbv55wn8xhc74dykrn-lastpass-cli-1.6.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/zvjb88v41hip3vlbv55wn8xhc74dykrn-lastpass-cli-1.6.1"
+        }
+      }
+    },
+    "nodejs@22.10.0": {
+      "last_modified": "2024-12-03T12:40:06Z",
+      "plugin_version": "0.0.2",
+      "resolved": "github:NixOS/nixpkgs/566e53c2ad750c84f6d31f9ccb9d00f823165550#nodejs_22",
+      "source": "devbox-search",
+      "version": "22.10.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/y6piwcsias394n5kflisg8jhll9czk2x-nodejs-22.10.0",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/2qwjlhfyn2k3dixjgqxnwhsxxyn46rxl-nodejs-22.10.0-libv8"
+            }
+          ],
+          "store_path": "/nix/store/y6piwcsias394n5kflisg8jhll9czk2x-nodejs-22.10.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ayfg2m6gwh5047hapf316jrilxd8kk4k-nodejs-22.10.0",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/649q0xdwl617h2s8j50f7880df60w37a-nodejs-22.10.0-libv8"
+            }
+          ],
+          "store_path": "/nix/store/ayfg2m6gwh5047hapf316jrilxd8kk4k-nodejs-22.10.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/4rmbk8pg2lvv22aqjk8b539pfspsm98m-nodejs-22.10.0",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/g1bmrm6lq74zdid30q8hh3102qxpk7p7-nodejs-22.10.0-libv8"
+            }
+          ],
+          "store_path": "/nix/store/4rmbk8pg2lvv22aqjk8b539pfspsm98m-nodejs-22.10.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hnkyz55vndmvwhg6nzpliv86gh6sxg7h-nodejs-22.10.0",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/j9kj5x00fh8sac4mfb6dxmfg1dk5af90-nodejs-22.10.0-libv8"
+            }
+          ],
+          "store_path": "/nix/store/hnkyz55vndmvwhg6nzpliv86gh6sxg7h-nodejs-22.10.0"
+        }
+      }
+    },
+    "yarn@1.22.22": {
+      "last_modified": "2025-11-23T21:50:36Z",
+      "resolved": "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261#yarn",
+      "source": "devbox-search",
+      "version": "1.22.22",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9r7mfrk7c10kwcalzcr667czhzpxqsp1-yarn-1.22.22",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9r7mfrk7c10kwcalzcr667czhzpxqsp1-yarn-1.22.22"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/iq6vkpq92xpfz7scx0vdvl89p8k2p4fl-yarn-1.22.22",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/iq6vkpq92xpfz7scx0vdvl89p8k2p4fl-yarn-1.22.22"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ndp946jadqi00ac9xr9kfymbah50yrmr-yarn-1.22.22",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ndp946jadqi00ac9xr9kfymbah50yrmr-yarn-1.22.22"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5ygdymg3kpsxlk381nhif1mrhgp51455-yarn-1.22.22",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5ygdymg3kpsxlk381nhif1mrhgp51455-yarn-1.22.22"
+        }
+      }
+    }
+  }
+}
