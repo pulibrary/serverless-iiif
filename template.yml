@@ -1,3 +1,4 @@
+---
 Transform: "AWS::Serverless-2016-10-31"
 Metadata:
   AWS::ServerlessRepo::Application:
@@ -76,7 +77,7 @@ Parameters:
   SharpLayer:
     Type: String
     Description: >
-      ARN of a custom AWS Lambda Layer containing the sharp and libvips dependencies. Use the special value `JP2` 
+      ARN of a custom AWS Lambda Layer containing the sharp and libvips dependencies. Use the special value `JP2`
       to use the managed JPEG2000-compatible layer, or `INTERNAL` to use the built-in dependencies (without JPEG2000
       support).
     AllowedPattern: "^INTERNAL$|^JP2$|^arn:aws:lambda:.*:.*:layer:.+:\\d+$"
@@ -167,9 +168,9 @@ Parameters:
       - Lambda@Edge
       - None
 Conditions:
-  CreateCacheBucket: 
+  CreateCacheBucket:
     Fn::Equals: [!Ref UseCacheBucket, "true"]
-  CreateDistribution: 
+  CreateDistribution:
     Fn::Or:
       - Fn::Equals: [!Ref UseCloudFront, "true"]
       - Fn::Equals: [!Ref UseCacheBucket, "true"]
@@ -234,33 +235,6 @@ Resources:
       LicenseInfo: "Apache-2.0"
     Metadata:
       BuildMethod: nodejs22.x
-  LambdaEdgeFunctionForwardedFor:
-      Type: AWS::Serverless::Function
-      Properties:
-        CodeUri: ./src_edge
-        Role: !GetAtt LambdaEdgeFunctionRole.Arn
-        Runtime: nodejs22.x
-        Handler: index.viewerRequest
-        Timeout: 5
-        AutoPublishAlias: live 
-  LambdaEdgeFunctionRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-        Path: "/"
-        ManagedPolicyArns:
-            - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            -
-              Sid: "AllowLambdaServiceToAssumeRole"
-              Effect: "Allow"
-              Action: 
-                - "sts:AssumeRole"
-              Principal:
-                Service: 
-                  - "lambda.amazonaws.com"
-                  - "edgelambda.amazonaws.com"
   IiifCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
@@ -270,7 +244,7 @@ Resources:
     Type: "AWS::S3::Bucket"
     Condition: CreateCacheBucket
     Properties:
-      BucketName: 
+      BucketName:
         Fn::Sub: "${AWS::StackName}-cache"
       LifecycleConfiguration:
         Rules:
@@ -344,7 +318,7 @@ Resources:
           corsExposeHeaders: !Ref CorsExposeHeaders
           corsMaxAge: !Ref CorsMaxAge
           cacheBucket:
-            Fn::If: 
+            Fn::If:
               - CreateCacheBucket
               - Fn::Sub: "${AWS::StackName}-cache"
               - !Ref AWS::NoValue
@@ -382,69 +356,69 @@ Resources:
         Comment: "Caching Distribution Identity"
 
   CloudFrontCachePolicy:
-      Type: "AWS::CloudFront::CachePolicy"
-      Properties:
-          CachePolicyConfig:
-              Name:
-                Fn::Sub: "iiif-cloud-${StageName}-CachePolicy"
-              Comment: "Cache policy for IIIF Cloud"
-              DefaultTTL: !Ref CacheDefaultTTL
-              MaxTTL: !Ref CacheMinimumTTL
-              MinTTL: !Ref CacheMaximumTTL
-              ParametersInCacheKeyAndForwardedToOrigin:
-                  EnableAcceptEncodingGzip: true
-                  EnableAcceptEncodingBrotli: true
-                  CookiesConfig:
-                      CookieBehavior: "none"
-                  HeadersConfig:
-                      HeaderBehavior: "none"
-                  QueryStringsConfig:
-                      QueryStringBehavior: "none"
+    Type: "AWS::CloudFront::CachePolicy"
+    Properties:
+      CachePolicyConfig:
+        Name:
+          Fn::Sub: "${AWS::StackName}-CachePolicy"
+        Comment: "Cache policy for IIIF Cloud"
+        DefaultTTL: !Ref CacheDefaultTTL
+        MaxTTL: !Ref CacheMinimumTTL
+        MinTTL: !Ref CacheMaximumTTL
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig:
+            CookieBehavior: "none"
+          HeadersConfig:
+            HeaderBehavior: "none"
+          QueryStringsConfig:
+            QueryStringBehavior: "none"
 
   CloudFrontOriginRequestPolicy:
-      Type: "AWS::CloudFront::OriginRequestPolicy"
-      Properties:
-          OriginRequestPolicyConfig:
-              Name:
-                Fn::Sub: "iiif-cloud-${StageName}-OriginPolicy"
-              Comment: "Origin policy for IIIF Cloud"
-              HeadersConfig:
-                  HeaderBehavior: "whitelist"
-                  Headers:
-                    - "x-original-uri"
-                    - "x-cache-iiif-request"
-              CookiesConfig:
-                  CookieBehavior: "none"
-              QueryStringsConfig:
-                  QueryStringBehavior: "none"
+    Type: "AWS::CloudFront::OriginRequestPolicy"
+    Properties:
+      OriginRequestPolicyConfig:
+        Name:
+          Fn::Sub: "${AWS::StackName}-OriginPolicy"
+        Comment: "Origin policy for serveless iiif"
+        HeadersConfig:
+          HeaderBehavior: "whitelist"
+          Headers:
+            - "x-original-uri"
+            - "x-cache-iiif-request"
+        CookiesConfig:
+          CookieBehavior: "none"
+        QueryStringsConfig:
+          QueryStringBehavior: "none"
 
   CloudFrontResponseHeadersPolicy:
-      Type: "AWS::CloudFront::ResponseHeadersPolicy"
-      Properties:
-          ResponseHeadersPolicyConfig:
-              Comment: "Custom response policy with cache-control max-age set to match TTL"
-              CorsConfig:
-                  AccessControlAllowCredentials: false
-                  AccessControlAllowHeaders:
-                      Items:
-                        - "*"
-                  AccessControlAllowMethods:
-                      Items:
-                        - "ALL"
-                  AccessControlAllowOrigins:
-                      Items:
-                        - "*"
-                  AccessControlExposeHeaders:
-                      Items:
-                        - "*"
-                  OriginOverride: true
-              CustomHeadersConfig:
-                  Items:
-                    - Header: "Cache-Control"
-                      Value: "max-age=31536000"
-                      Override: true
-              Name:
-                Fn::Sub: "iiif-cloud-${StageName}-ResponseHeadersPolicy"
+    Type: "AWS::CloudFront::ResponseHeadersPolicy"
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Comment: "Custom response policy with cache-control max-age set to match TTL"
+        CorsConfig:
+          AccessControlAllowCredentials: false
+          AccessControlAllowHeaders:
+            Items:
+              - "*"
+          AccessControlAllowMethods:
+            Items:
+              - "ALL"
+          AccessControlAllowOrigins:
+            Items:
+              - "*"
+          AccessControlExposeHeaders:
+            Items:
+              - "*"
+          OriginOverride: true
+        CustomHeadersConfig:
+          Items:
+            - Header: "Cache-Control"
+              Value: "max-age=31536000"
+              Override: true
+        Name:
+          Fn::Sub: "${AWS::StackName}-ResponseHeadersPolicy"
 
   CFDistribution:
     Type: "AWS::CloudFront::Distribution"
@@ -496,7 +470,7 @@ Resources:
                   Fn::Sub: "${CacheBucket}.s3.${AWS::Region}.amazonaws.com"
               - !Ref AWS::NoValue
         OriginGroups:
-          Quantity: 
+          Quantity:
             Fn::If: [CreateCacheBucket, 1, 0]
           Items:
             Fn::If:
@@ -508,12 +482,12 @@ Resources:
                       - OriginId: IiifCache
                       - OriginId: IiifLambda
                   FailoverCriteria:
-                      StatusCodes:
-                          Items: [403,404]
-                          Quantity: 2
+                    StatusCodes:
+                      Items: [403, 404]
+                      Quantity: 2
               - []
         DefaultCacheBehavior:
-          TargetOriginId: 
+          TargetOriginId:
             Fn::If: [CreateCacheBucket, IiifOrigins, IiifLambda]
           ViewerProtocolPolicy: https-only
           AllowedMethods: ["GET", "HEAD", "OPTIONS"]
@@ -524,41 +498,40 @@ Resources:
           ResponseHeadersPolicyId: !Ref CloudFrontResponseHeadersPolicy
           FunctionAssociations:
             - Fn::If:
-              - ViewerRequestCloudWatchFunction
-              - EventType: viewer-request
-                FunctionARN: !Ref ViewerRequestARN
-              - !Ref AWS::NoValue
+                - ViewerRequestCloudWatchFunction
+                - EventType: viewer-request
+                  FunctionARN: !Ref ViewerRequestARN
+                - !Ref AWS::NoValue
             - Fn::If:
-              - ViewerResponseCloudWatchFunction
-              - EventType: viewer-response
-                FunctionARN: !Ref ViewerResponseARN
-              - !Ref AWS::NoValue
+                - ViewerResponseCloudWatchFunction
+                - EventType: viewer-response
+                  FunctionARN: !Ref ViewerResponseARN
+                - !Ref AWS::NoValue
           LambdaFunctionAssociations:
             - Fn::If:
-              - ViewerRequestLambda
-              - EventType: viewer-request
-                LambdaFunctionARN: !Ref ViewerRequestARN
-                IncludeBody: false
-              - EventType: viewer-request
-                LambdaFunctionARN: !Ref LambdaEdgeFunctionForwardedFor.Version
+                - ViewerRequestLambda
+                - EventType: viewer-request
+                  LambdaFunctionARN: !Ref ViewerRequestARN
+                  IncludeBody: false
+                - !Ref AWS::NoValue
             - Fn::If:
-              - UseOriginRequest
-              - EventType: origin-request
-                LambdaFunctionARN: !Ref OriginRequestARN
-                IncludeBody: false
-              - !Ref AWS::NoValue
+                - UseOriginRequest
+                - EventType: origin-request
+                  LambdaFunctionARN: !Ref OriginRequestARN
+                  IncludeBody: false
+                - !Ref AWS::NoValue
             - Fn::If:
-              - UseOriginResponse
-              - EventType: origin-response
-                LambdaFunctionARN: !Ref OriginResponseARN
-                IncludeBody: false
-              - !Ref AWS::NoValue
+                - UseOriginResponse
+                - EventType: origin-response
+                  LambdaFunctionARN: !Ref OriginResponseARN
+                  IncludeBody: false
+                - !Ref AWS::NoValue
             - Fn::If:
-              - ViewerResponseLambda
-              - EventType: viewer-response
-                LambdaFunctionARN: !Ref ViewerResponseARN
-                IncludeBody: false
-              - !Ref AWS::NoValue
+                - ViewerResponseLambda
+                - EventType: viewer-response
+                  LambdaFunctionARN: !Ref ViewerResponseARN
+                  IncludeBody: false
+                - !Ref AWS::NoValue
 Outputs:
   EndpointV2:
     Description: IIIF V2 Endpoint URL
@@ -566,9 +539,9 @@ Outputs:
       Fn::If:
         - CreateDistribution
         - Fn::If:
-          - DistributionCustomDomain
-          - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
-          - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
+            - DistributionCustomDomain
+            - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
+            - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
         - Fn::Sub: "${IiifFunctionUrl.FunctionUrl}iiif/2"
   EndpointV3:
     Description: IIIF V3 Endpoint URL
@@ -576,13 +549,13 @@ Outputs:
       Fn::If:
         - CreateDistribution
         - Fn::If:
-          - DistributionCustomDomain
-          - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
-          - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
+            - DistributionCustomDomain
+            - Fn::Sub: "https://${CacheDomainName}/iiif/2/"
+            - Fn::Sub: "https://${CFDistribution.DomainName}/iiif/2/"
         - Fn::Sub: "${IiifFunctionUrl.FunctionUrl}iiif/2"
   DistributionId:
     Description: Caching Distribution ID
-    Value: 
+    Value:
       Fn::If:
         - CreateDistribution
         - !Ref CFDistribution
@@ -598,8 +571,8 @@ Outputs:
       Fn::Select:
         - 2
         - Fn::Split:
-          - "/"
-          - Fn::GetAtt: IiifFunctionUrl.FunctionUrl
+            - "/"
+            - Fn::GetAtt: IiifFunctionUrl.FunctionUrl
   FunctionUrl:
     Description: IIIF Function URL
     Value:
