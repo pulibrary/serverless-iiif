@@ -235,33 +235,6 @@ Resources:
       LicenseInfo: "Apache-2.0"
     Metadata:
       BuildMethod: nodejs22.x
-  LambdaEdgeFunctionForwardedFor:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./src_edge
-      Role: !GetAtt LambdaEdgeFunctionRole.Arn
-      Runtime: nodejs22.x
-      Handler: index.viewerRequest
-      Timeout: 5
-      AutoPublishAlias: live
-  LambdaEdgeFunctionRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      Path: "/"
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          -
-            Sid: "AllowLambdaServiceToAssumeRole"
-            Effect: "Allow"
-            Action:
-              - "sts:AssumeRole"
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-                - "edgelambda.amazonaws.com"
   IiifCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
@@ -540,8 +513,7 @@ Resources:
                 - EventType: viewer-request
                   LambdaFunctionARN: !Ref ViewerRequestARN
                   IncludeBody: false
-                - EventType: viewer-request
-                  LambdaFunctionARN: !Ref LambdaEdgeFunctionForwardedFor.Version
+                - !Ref AWS::NoValue
             - Fn::If:
                 - UseOriginRequest
                 - EventType: origin-request
