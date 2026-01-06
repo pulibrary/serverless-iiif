@@ -167,7 +167,16 @@ Parameters:
       - CloudWatch Function
       - Lambda@Edge
       - None
+  UseRewriteLambda:
+    Type: String
+    Description: Use edge lambda to rewrite libimages urls
+    AllowedValues:
+      - "true"
+      - "false"
+    Default: "false"
 Conditions:
+  CreateRewriteLamda:
+    Fn::Equals: [!Ref UseRewriteLambda, "true"]
   CreateCacheBucket:
     Fn::Equals: [!Ref UseCacheBucket, "true"]
   CreateDistribution:
@@ -235,6 +244,33 @@ Resources:
       LicenseInfo: "Apache-2.0"
     Metadata:
       BuildMethod: nodejs22.x
+  LambdaEdgeFunctionForwardedFor:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: ./src_edge
+        Role: !GetAtt LambdaEdgeFunctionRole.Arn
+        Runtime: nodejs22.x
+        Handler: index.viewerRequest
+        Timeout: 5
+        AutoPublishAlias: live
+  LambdaEdgeFunctionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+        Path: "/"
+        ManagedPolicyArns:
+            - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Sid: "AllowLambdaServiceToAssumeRole"
+              Effect: "Allow"
+              Action: 
+                - "sts:AssumeRole"
+              Principal:
+                Service: 
+                  - "lambda.amazonaws.com"
+                  - "edgelambda.amazonaws.com"
   IiifCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
@@ -509,11 +545,16 @@ Resources:
                 - !Ref AWS::NoValue
           LambdaFunctionAssociations:
             - Fn::If:
-                - ViewerRequestLambda
+                - CreateRewriteLamda
                 - EventType: viewer-request
-                  LambdaFunctionARN: !Ref ViewerRequestARN
-                  IncludeBody: false
+                  LambdaFunctionARN: !Ref LambdaEdgeFunctionForwardedFor.Version
                 - !Ref AWS::NoValue
+            - Fn::If:
+              - ViewerRequestLambda
+              - EventType: viewer-request
+                LambdaFunctionARN: !Ref ViewerRequestARN
+                IncludeBody: false
+              - !Ref AWS::NoValue
             - Fn::If:
                 - UseOriginRequest
                 - EventType: origin-request

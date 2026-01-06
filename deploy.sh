@@ -28,7 +28,7 @@ then
   then
     sam deploy --stack-name=libimages-production \
     --s3-prefix=libimages-production \
-    --parameter-overrides='StageName="production", SourceBucket="libimages-production", CacheDomainName="iiif.princeton.edu, "CorsAllowCredentials="false", CorsAllowHeaders="*", CorsAllowOrigin="*", CorsExposeHeaders="cache-control,content-language,content-length,content-type,date,expires,last-modified,pragma", CorsMaxAge="3600", IiifLambdaMemory="3008", IiifLambdaTimeout="10", PixelDensity="0", Preflight="false", ResolverTemplate="%s.tiff"' \
+    --parameter-overrides='StageName="production", SourceBucket="libimages-production", CacheDomainName="iiif.princeton.edu", "CorsAllowCredentials="false", CorsAllowHeaders="*", CorsAllowOrigin="*", CorsExposeHeaders="cache-control,content-language,content-length,content-type,date,expires,last-modified,pragma", CorsMaxAge="3600", UseRewriteLambda="true", IiifLambdaMemory="3008", IiifLambdaTimeout="10", PixelDensity="0", Preflight="false", ResolverTemplate="%s.tiff"' \
     --s3-bucket=aws-sam-cli-managed-default-samclisourcebucket-1j1ve93v4jqs9 \
     --region='us-east-1' \
     --capabilities='CAPABILITY_IAM' \
@@ -37,7 +37,7 @@ then
   then
     sam deploy --stack-name=libimages-staging \
     --s3-prefix=libimages-staging \
-    --parameter-overrides='StageName="staging", SourceBucket="libimages-production", CacheDomainName="iiif-staging.princeton.edu", CorsAllowCredentials="false", CorsAllowHeaders="*", CorsAllowOrigin="*", CorsExposeHeaders="cache-control,content-language,content-length,content-type,date,expires,last-modified,pragma", CorsMaxAge="3600", IiifLambdaMemory="3008", IiifLambdaTimeout="10", PixelDensity="0", Preflight="false", ResolverTemplate="%s.tiff"' \
+    --parameter-overrides='StageName="staging", SourceBucket="libimages-production", CacheDomainName="iiif-staging.princeton.edu", CorsAllowCredentials="false", CorsAllowHeaders="*", CorsAllowOrigin="*", CorsExposeHeaders="cache-control,content-language,content-length,content-type,date,expires,last-modified,pragma", CorsMaxAge="3600", UseRewriteLambda="true", IiifLambdaMemory="3008", IiifLambdaTimeout="10", PixelDensity="0", Preflight="false", ResolverTemplate="%s.tiff"' \
     --s3-bucket=aws-sam-cli-managed-default-samclisourcebucket-1j1ve93v4jqs9 \
     --region='us-east-1' \
     --capabilities='CAPABILITY_IAM' \
