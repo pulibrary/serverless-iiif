@@ -22,9 +22,16 @@ yarn install
 * Configure the profile via `aws configure --profile figgy-deploy`
   - Set default region to us-east-1
   - Set default output format to json
+
+### iiif-cloud
 * `sam build --use-container`
-* `./deploy.sh staging` will deploy the stack to staging.
-* `./deploy.sh production` will deploy the stack to production.
+* `./deploy.sh iiif-cloud staging` will deploy the stack to staging.
+* `./deploy.sh iiif-cloud production` will deploy the stack to production.
+
+### libimages
+* `sam build --use-container`
+* `./deploy.sh libimages staging` will deploy the stack to staging.
+* `./deploy.sh libimages production` will deploy the stack to production.
 
 ## How to clear the cache
 

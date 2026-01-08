@@ -1,8 +1,8 @@
 {
-  "name": "edge-lambda-converter",
+  "name": "edge-lambda-rewrite",
   "version": "0.0.1",
-  "description": "Edge Lambda Converter for IIIF",
-  "author": "Trey Pendragon",
+  "description": "Edge Lambda URL rewrite",
+  "author": "Princeton University Library",
   "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
